@@ -1,0 +1,62 @@
+\documentclass[titlepage]{article}
+\usepackage{amsmath}
+\title{CS 180 Homework 1}
+\author{Robert Geil \\
+University of California, Los Angeles
+}
+\numberwithin{equation}{subsection}
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+
+\section{Problem 2}
+\section{}
+\section{}
+\section{Problem 5}
+\subsection{Prove (by induction) that sum of 
+the first n integers (1 + 2 + .... + \textit{n}) is \textit{n}(\textit{n} + 1)/2 }
+\subsubsection{Base Case}
+\begin{equation}
+    n = 1
+\end{equation}
+so the original equation, when substituting \textit{n} trivially becomes
+\begin{equation}
+    1 = 1(1 + 1) / 2
+\end{equation}
+by simple evaluation of this equation in the case \textit{n} = 1, we can assure ourselves
+that the equality holds. Therefore, we prove the base case
+
+\subsubsection{Kth Case}
+Assume that
+\begin{equation}
+    1 + 2 + ... + k = k(k + 1)/ 2
+\end{equation}
+We will then prove
+\begin{equation}
+    1 + 2 + ... + k + (k+1) = (k+1)((k+1)+1)/2
+\end{equation}
+\begin{equation}
+    ... = (k+1)(k+2)/2
+\end{equation}
+Distributing the \textit{k+1} gives
+\begin{equation}
+    ... = (k(k+1) + 2(k+1))/2
+\end{equation}
+\begin{equation}
+    ... = k(k+1)/2 + 2(k+1)/2
+\end{equation}
+\begin{equation}
+    1 + 2 + ... + k + (k+1) = k(k+1)/2 + (k+1)
+\end{equation}
+Subtracting k+1 from both sides gives us the equation
+\begin{equation}
+    1 + 2 + ... + k = k(k+1)/2
+\end{equation}
+which by our earlier assumption is true, therefore we prove
+that given the \textit{k}th case is true, the \textit{k+1}st case also holds
+
+\subsection{What is 1\textsuperscript{3} +2\textsuperscript{3} + 3\textsuperscript{3} +...+ n\textsuperscript{3} = ?? Prove your answer by induction.}
+\subsubsection{Base Case}
+In the case that \textit{n = 1}, we can trivially see that the result is 1\textsuperscript{3} or 1
+\end{document}
