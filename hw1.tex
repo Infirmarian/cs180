@@ -1,5 +1,6 @@
 \documentclass[titlepage]{article}
 \usepackage{amsmath}
+\usepackage{enumerate}
 \title{CS 180 Homework 1}
 \author{Robert Geil \\
 University of California, Los Angeles
@@ -12,8 +13,76 @@ University of California, Los Angeles
 
 \section{Problem 2}
 \section{}
-\section{}
-\section{Problem 5}
+\section{Ordering Runtimes}
+Provided with the equations
+\begin{enumerate}
+    \item $g_1(n) = 2^{\sqrt{log(n)}}$
+    \item $g_2(n) = 2^n$
+    \item $g_3(n) = n^{4/3}$
+    \item $g_4(n) = n(log(n))^3$
+    \item $g_5(n) = n^{log(n)}$
+    \item $g_6(n) = 2^{2^n}$
+    \item $g_7(n) = 2^{n^2}$
+\end{enumerate}
+
+\subsection{Equation Ordering}
+Let us begin with Equation 1. This can be reduced using the log power rule to
+$2^{log(n)/2}$. Since the base of the log is constant, the log can be "de-expontiated" to
+$dn$, where \textit{d} is a constant.
+\subsubsection{Equation 4}
+    Equation 4 is strictly greater than Equation 1
+    \begin{equation}
+        n \leq n(log(n))^3
+    \end{equation}
+    Dividing both sides by \textit{n} (assuming \textit{n} strictly positive) gives
+    \begin{equation}
+        1 \leq log(n)^3
+    \end{equation}
+    which is asymptotically true
+\subsubsection{Equation 3}
+    Equation 4 can be rewritten using Log Power rules to 
+    \begin{equation}
+        3nlog(n)
+    \end{equation}
+    While Equation 3 can be written as
+    \begin{equation}
+        n(log(n)) \leq n*n^{1/3}
+    \end{equation}
+    Dividing by \textit{n} (assuming that \textit{n} is positive) yields 
+    \begin{equation}
+        log(n) \leq n^{1/3}
+    \end{equation}
+    As per the textbook, polynomial growth is greater than log growth, so this 
+    inequality is asymptotically true
+\subsubsection{Equation 5}
+    Equation 5 grows faster than Equation 4 because \textit{log(n)} is
+    non-constant, as compared to \textit{4/3}, and therefore grows faster, so
+    \begin{equation}
+        n^{4/3} \leq n^{log(n)}
+    \end{equation}
+\subsubsection{Equation 2}
+    Equation 2 is an exponential equation.
+    By the definitions in the textbook, we can see that for asymptotic behavior,
+    exponential equations are greater than polynomial equations, so it must hold that
+    \begin{equation}
+        n^{4/3} \leq 2^{log(n)/2}
+    \end{equation}
+\subsubsection{Equations 6 and 7}
+    By using the Power Law, equations 6 and 7 can both be reduced to the equivelent
+    \begin{equation}
+        4^n
+    \end{equation}
+    Since 4 is strictly greater than 2, we see that equations 6 and 7 increase
+    faster than equation 2
+\subsection{Final Ordering}
+Our series of proofs, through the law of syllogism, prove that the increasing 
+ordering of O(\textit{n}) runtimes should be 
+\textbf{1, 4, 3, 5, 2, 6, 7} or
+\begin{equation}
+    O(n) \leq O(nlog(n)) \leq O(n^{4/3}) \leq O(n^{log(n)}) \leq  O(2^n) \leq O(4^n)
+\end{equation}
+
+\section{Proofs By Induction}
 \subsection{Prove (by induction) that sum of 
 the first n integers (1 + 2 + .... + \textit{n}) is \textit{n}(\textit{n} + 1)/2 }
 \subsubsection{Base Case}
@@ -57,6 +126,78 @@ which by our earlier assumption is true, therefore we prove
 that given the \textit{k}th case is true, the \textit{k+1}st case also holds
 
 \subsection{What is 1\textsuperscript{3} +2\textsuperscript{3} + 3\textsuperscript{3} +...+ n\textsuperscript{3} = ?? Prove your answer by induction.}
-\subsubsection{Base Case}
-In the case that \textit{n = 1}, we can trivially see that the result is 1\textsuperscript{3} or 1
+Based on a brief inspection of the first few cases, it appears the pattern follows the square of the \textit{triangular numbers},
+i.e. 1\textsuperscript{2}, 3\textsuperscript{2}, 6\textsuperscript{2}, 10\textsuperscript{2}, 15\textsuperscript{2}, \dots\\If that is the case, the equation which matches this is
+\begin{equation}
+    (n(n+1)/2)^2
+\end{equation}
+We will now prove by induction that this is true for all \textit{n} $\geq$ 1
+\subsubsection{Base Case (\textit{n=1})}
+\begin{equation}
+    1^3 = (1(1+1)/2)^2
+\end{equation}
+Simply evaluating the subsitiution of the base case, we seen that the
+equation reduces down to the true statement \textit{1 = 1}
+\subsubsection{Kth Case}
+We assume that the equation holds for \textit{n = k}, i.e.
+\begin{equation}
+    1^3 + 2^3 + \dots + k^3 = (k(k+1)/2)^2
+\end{equation}
+Now we seek to prove the \textit{k+1}st case
+\begin{equation}
+    1^3 + 2^3 + \dots + k^3 + (k+1)^3 = ((k+1)((k+1)+1)/2)^2
+\end{equation}
+the right hand side then simplifies to
+\begin{equation}
+    \dots = ((k+1)(k+2)/2)^2
+\end{equation}
+Distributing the \textit{k+2} and the division by two gives us
+\begin{equation}
+    \dots = (k(k+1)/2+(k+1))^2
+\end{equation}
+evaluating the square then provides
+\begin{equation}
+    \dots = (k(k+1)/2)^2 + k(k+1)^2 + (k+1)^2
+\end{equation}
+from there, a \textit{(k+1)\textsuperscript{2}} can be factored out from
+the right two terms, giving
+\begin{equation}
+    1^3 + 2^3 + \dots + k^3 + (k+1)^3 = (k(k+1)/2)^2 + (k+1)(k+1)^2
+\end{equation}
+by subtracting \textit{(k+1)\textsuperscript{3}} from both sides, we
+reach the original assumed Kth case, therefore proving that the sum of
+the first \textit{n} cubes is \textit{(k(k+1)/2)\textsuperscript{2}}
+
+\section{Egg Drop Problem}
+\subsection{Description}
+In the \textit{Egg Drop Problem}, there is a ladder with a number of rungs. An egg will
+break if it is dropped from an unknown rung, \textit{k}. In order to find \textit{k}, two (2) 
+eggs are provided, which may be dropped repeatedly until they break. If an egg is broken,
+it can no longer be used. One goal of this problem is optimization, miniminzing the number
+of times an egg must be dropped
+\subsection{Algorithm}
+In an absolute minimum case, there must be two drops of the egg. Once at the maximum height
+from which the egg will \textbf{not} break, and one from the next rung on the ladder up, showing
+that it \textbf{will} break. Since two eggs are provided, there is a bit
+more flexibility when it comes to dropping, as the first egg can be used
+to probe in a non-linear fashion, and followed by the second egg in a linear
+way once the first has broken. To follow this algorithm:
+\begin{enumerate}
+    \item Drop the egg from the middle rung of the ladder
+    \item If it breaks, linear probe from the lowest tested rung (if the egg is broken on the first drop, the bottom) until the second egg breaks
+    \item Otherwise, go up half the distance to the top of the ladder and drop the first egg again, and go to step 2
+\end{enumerate}
+\subsection{Runtime}
+\subsubsection{200 Rung Ladder}
+If the ladder has 200 rungs, in the worst case using this algorithm 100 drops will be performed.
+\textit{k = 100} is the worst case. Here, we drop the egg from halfway up (step 100) and it breaks.
+We then have to perform 99 more drops (from steps 1-99), all of which succeed in order to confirm that
+the highest step the egg won't break on is step 99. 
+\subsubsection{\textit{n} Rung Ladder}
+Similarly, if the ladder has \textit{n} rungs, the worst case is \textit{n}/2 drops, if the highest non-breaking
+rung is \textit{n}/2 - 1.
+\subsubsection{Big-O Runtime}
+The efficiency of this algorithm is O(\textit{n}), where \textit{n} is the number of
+rungs in the ladder. This is because in the worst case \textit{n}/2 drops must be performed,
+which is equivelent to a constant times \textit{n}, or O(\textit{n})
 \end{document}
