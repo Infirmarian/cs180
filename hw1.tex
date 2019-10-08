@@ -1,18 +1,114 @@
 \documentclass[titlepage]{article}
 \usepackage{amsmath}
 \usepackage{enumerate}
+\usepackage{listings}
 \title{CS 180 Homework 1}
 \author{Robert Geil \\
 University of California, Los Angeles
+}
+\lstset{frame=tb,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  breaklines=true,
+  tabsize=3
 }
 \numberwithin{equation}{subsection}
 \begin{document}
 \maketitle
 
-\section{Problem 1}
-
-\section{Problem 2}
-\section{}
+\section{Television Network Programming}
+\subsection{Problem}
+Two television networks are competing for programming slots for a season,
+and each attempts to maximize the number of shows that are selected. Each
+network has $n$ shows, and there are $n$ slots of programming. A given network
+\textit{wins} a slot if their proposed show has a higher ranking than their
+competitor. Is there a stable matching for any two sets of shows? We define
+\textit{stable} as a state where one network cannot unilaterally change their
+schedule to win more slots. For example, if the networks provide schedules $A$ and $B$,
+but if the first network changed its schedule to $A'$ and as a result won more slots,
+$A$ and $B$ would be an unstable schedule.
+\subsection{Counter Example}
+There is no way for any two $n$ show lists to be formed into a stable matching.
+For example, consider the simple counter case of Network A, who has 2 shows of ranking
+1 and 3, and Network B, who has shows of ranking 2 and 4. If A submits schedule
+(1, 3) and B submits (2, 4), A wins 0 slots. However, A could unilaterally 
+change their schedule to (3, 1) and then win 1 slot (against B's (2, 4)). In
+response, B could then switch to (4, 2) and win back their two slot advantage. However,
+A could then switch the ordering of their two shows as well, bringing us to an endless
+back-and-forth, which does not meet the definition of stable.
+\section{National Resident Matching Program}
+\subsection{Problem}
+A group of $m$ hospitals wants to hire a number of residents from $n$ medical
+school graduates. Each hospital ranks the students in terms of priority (1 - $n$) and
+each student ranks the hospitals in terms of priority (1 - $m$). We must create
+an algorithm that avoids the instability where student $s$ is matched with hospital $h$,
+$s'$ is not matched, but $h$ prefered $s'$ to $s$. In addition, the instability where there exist
+students $s$ and $s'$, and hospitals $h$ and $h'$, and $s$ is matched with $h$, $s'$ is with $h'$, but
+$h$ was higher on $s'$'s list, and $s'$ was higher on $h$'s list must be avoided.
+\subsection{Algorithm}
+\begin{minipage}{\linewidth}
+    \begin{lstlisting}
+    while there are hospitals with slots not filled:
+        pick an arbitrary hospital with a slot, and ask their top choice (who they haven't asked yet) to come to the hospital
+        if the student hasn't been selected for any hospital yet, accept
+        otherwise:
+            if the student's already selected hospital has a higher ranking than the asking hospital, break off with the current hospital
+            otherwise reject the asking hospital
+    \end{lstlisting}
+\end{minipage}
+\subsection{Proof of No Instability}
+\subsubsection{Unmatched Student Instability}
+Assume there are arbitrary students $s$ and $s'$, and hospital $h$. $s$ is matched with $h$, and $h'$ has
+no hospital, but $h$ prefers $s'$ to $s$. This implies that there hospital $h$ requested $s$ before
+$s'$, as by the algorithm, any student who is paired with a hospital will always either remain with
+that hospital \textbf{or} go to another hospital. However, since $h$ prefers $s'$ to $s$, following
+the algorithm, $h$ would have asked $s'$ before $s$, so we have a contradiction.
+\subsubsection{Unstable Hospital Student Match}
+Assume there are arbitrary students $s$ and $s'$, and hospitals $h$ and $h'$. $s$ ranks $h'$ above $h$, and
+$h'$ ranks $s$ above $s'$. In order for $s$ and $h$ to be matched, there must have been a hospital $h' < h''$
+which requested $s$, and then to be paired with $h$, $h'' < h$. However, this forms a contradiction, as by the
+transitive property of inequality, $s$ must prefer $h$ to $h'$, but we have assumed that $s$ ranks $h'$ above $h$, 
+therefore this could not have occurred using this algorithm
+\subsection{Runtime}
+Each hospital may ask every student on its list before a matching is found, but since a hospital never asks
+a student multiple times, they will ask at most $n$ times. With $m$ hospitals each completing these $n$ possible
+requests, the worst-case runtime of this algorithm is O($nm$).
+\section{Shipping Maintainence}
+\subsection{Problem}
+A shipping company has \textit{n} ships, and \textit{n} ports. Each ship
+visits all \textit{n} ports in a month that is \textit{m} days long, where
+$m>n$. In addition, no two ships can be in a port on the same day, and each
+ship truncates its regular shipping schedule to perform maintainence before
+the end of the month.
+\subsection{Algorithm}
+This problem has many parallels to the marriage problem. The problem set can
+be represented by a bipartite graph, with one side being the ships, and one the
+ports. There can be only 1 \textit{final docking} between any given ship and port,
+and there is a \textit{priority} for both ships and ports, in the form of the 
+scheduled order that the ships are to dock. In order to perform the matching of when to truncate
+a ship's itinerary, follow these steps
+\begin{enumerate}
+    \item For each ship, create a \textit{n} long list with the numbers of its ports in the \textit{reverse} schedule order (ie last visited port is first on the list)
+    \item For each port, create a \textit{n} long list with then numbers of its ship schedule in the \textit{reverse} order
+    \item Check if there is 1 or more un-truncated ship, if not, exit
+    \item Arbitrarily choose an un-truncated ship, and try to end-dock with the first port on it's list that hasn't been requested to dock yet. If that port doesn't already have a ship for maintainence, schedule the asking ship in and go to step 3.
+    \item If the requesting ship has an earlier scheduled docking date with the port, reject the match, otherwise cancel the prior ship-port docking in favor of this new one. Go to step 3
+\end{enumerate}
+Just as in the marriage problem, at the completion of the algorithm, each port will be matched with exactly one ship, with the 
+optimizing factor being how late in the month the ship docks for the remainder of the month.
+\subsection{Proof of the Existance of a Solution}
+Assume there are two arbitrary ports $p$ and $p'$, and two arbitrary ships $s$ and $s'$.
+For a solution to not exist, there would have to be a choice where $s$ docks with $p$ after $s'$ has already
+visited $p'$ and before visiting $p$. However this forms a contradiction,
+because if $s'$ planned to visit $p'$ before visiting $p$, there must be some port $p''$ such that
+$p'$ is earlier than $p''$, and $p$ is earlier than $p''$ in $s'$'s schedule. However, this is a contradiction, so
+it is proven that in the scenario of two ports and two ships, there cannot be a matching that doesn't
+work out
+\subsection{Efficiency}
+The runtime of this algorithm is O($n^2$), as every ship (\textit{n}) may in the worst case have to
+set up or query a docking with every port \textit{n}. Because a given port cannot be queried by
+a single ship multiple times, the solution is not worse than a runtime of O($n^2$)
 \section{Ordering Runtimes}
 Provided with the equations
 \begin{enumerate}
@@ -55,7 +151,7 @@ $dn$, where \textit{d} is a constant.
     As per the textbook, polynomial growth is greater than log growth, so this 
     inequality is asymptotically true
 \subsubsection{Equation 5}
-    Equation 5 grows faster than Equation 4 because \textit{log(n)} is
+    Equation 5 grows faster than Equation 3 because the exponent \textit{log(n)} is
     non-constant, as compared to \textit{4/3}, and therefore grows faster, so
     \begin{equation}
         n^{4/3} \leq n^{log(n)}
@@ -65,7 +161,7 @@ $dn$, where \textit{d} is a constant.
     By the definitions in the textbook, we can see that for asymptotic behavior,
     exponential equations are greater than polynomial equations, so it must hold that
     \begin{equation}
-        n^{4/3} \leq 2^{log(n)/2}
+        n^{log(n)} \leq 2^n
     \end{equation}
 \subsubsection{Equations 6 and 7}
     By using the Power Law, equations 6 and 7 can both be reduced to the equivelent
@@ -96,19 +192,19 @@ so the original equation, when substituting \textit{n} trivially becomes
 by simple evaluation of this equation in the case \textit{n} = 1, we can assure ourselves
 that the equality holds. Therefore, we prove the base case
 
-\subsubsection{Kth Case}
+\subsubsection{Inductive Step}
 Assume that
 \begin{equation}
     1 + 2 + ... + k = k(k + 1)/ 2
 \end{equation}
-We will then prove
+We will then prove the \textit{k+1}st case
 \begin{equation}
     1 + 2 + ... + k + (k+1) = (k+1)((k+1)+1)/2
 \end{equation}
 \begin{equation}
     ... = (k+1)(k+2)/2
 \end{equation}
-Distributing the \textit{k+1} gives
+Distributing the $k+1$ gives
 \begin{equation}
     ... = (k(k+1) + 2(k+1))/2
 \end{equation}
@@ -138,7 +234,7 @@ We will now prove by induction that this is true for all \textit{n} $\geq$ 1
 \end{equation}
 Simply evaluating the subsitiution of the base case, we seen that the
 equation reduces down to the true statement \textit{1 = 1}
-\subsubsection{Kth Case}
+\subsubsection{Inductive Step}
 We assume that the equation holds for \textit{n = k}, i.e.
 \begin{equation}
     1^3 + 2^3 + \dots + k^3 = (k(k+1)/2)^2
@@ -159,14 +255,14 @@ evaluating the square then provides
 \begin{equation}
     \dots = (k(k+1)/2)^2 + k(k+1)^2 + (k+1)^2
 \end{equation}
-from there, a \textit{(k+1)\textsuperscript{2}} can be factored out from
+from there, a $(k+1)^2$ can be factored out from
 the right two terms, giving
 \begin{equation}
     1^3 + 2^3 + \dots + k^3 + (k+1)^3 = (k(k+1)/2)^2 + (k+1)(k+1)^2
 \end{equation}
-by subtracting \textit{(k+1)\textsuperscript{3}} from both sides, we
+by subtracting $(k+1)^3$ from both sides, we
 reach the original assumed Kth case, therefore proving that the sum of
-the first \textit{n} cubes is \textit{(k(k+1)/2)\textsuperscript{2}}
+the first \textit{n} cubes is $(k(k+1)/2)^2$
 
 \section{Egg Drop Problem}
 \subsection{Description}
