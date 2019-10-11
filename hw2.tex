@@ -1,0 +1,134 @@
+\documentclass[titlepage]{article}
+\usepackage{amsmath}
+\usepackage{enumerate}
+\usepackage{listings}
+\title{CS 180 Homework 2}
+\author{Robert Geil \\
+University of California, Los Angeles
+}
+\lstset{frame=tb,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  breaklines=true,
+  tabsize=3
+}
+\numberwithin{equation}{subsection}
+\begin{document}
+\maketitle
+\section{Finding a Topological Order or Cycle}
+\subsection{Problem}
+Given an arbitrary graph $G$, find some algorithm that either
+finds a topological ordering of the graph, if it is a \textit{Directed 
+Acyclic Graph}, or finds a cycle in the graph. 
+\subsection{Algorithm}
+The solution for this problem is similar to the book's provided
+solution for finding a topological ordering, but changes in the
+case that no nodes have 0 incoming edges.
+\begin{lstlisting}
+Create an empty set S holding all nodes with no incoming edges
+Create an empty list L holding the topological ordering
+For each node n in the graph:
+    if n has 0 incoming edges, add it to S
+while S isn't empty:
+    select an arbitrary element e from S
+    append e to the end of L
+    for each outgoing edge in the e:
+        if the node n pointed to has 1 incoming edge (ie from e):
+            add n to S
+    remove e from the set S
+    remove e from the graph G
+if the graph G is empty, L contains a topological ordering, exit
+otherwise all remaining elements are part of at least 1 cycle. To
+find such a cycle, pick an arbitrary node still in the graph, and
+perform Depth First Search with the target as the selected node.
+Once the node is found, the stack used in DFS represents the cycle
+the node is found, 
+\end{lstlisting}
+\subsection{Proof}
+We will prove the algorithm provides a correct solution to an arbitrary
+graph.
+\subsubsection{Containing A Cycle}
+If the graph contains a cycle, there must be a set of $k$ nodes
+such that for each node in the set, there must be an edge from
+at least 1 node in the set, and an edge to at least 1 node in the
+set. Assume a contradiction, that a node from a cycle was removed in
+the first iteration of the algorithm. That would imply that there was
+some node $k$ in the cycle with no incoming node, which forms a contradiction.
+In addition, in order to remove an element $k'$ of the cycle that points to $k$,
+$k'$ would have to not have incoming edges. By induction, we prove that
+no nodes in any cycle would be removed by our algorithm.
+\subsubsection{Finding a Topological Ordering}
+For a connected graph $G$ to not have a cycle, there must be at 
+least 1 node which has no incoming edges (ie a starting point 
+for the topological order). That node would then be removed 
+by the algorithm. However, for the graph $G$ minus the 
+removed node also cannot contain a cycle (since removing a node
+can never create a cycle where one didn't exist before), so again,
+there must be at least 1 node to remove for the topological ordering.
+Therefore, we prove by induction that for any graph without cycles,
+the algorithm will find a topological sort.
+\subsection{Runtime}
+The order runtime for this algorithm is O($m + n$), where $m$ is the
+number of edges in the graph $G$, and $n$ is the number of nodes in $G$.
+This runtime is achieved because the entire graph is searched just once
+for nodes with 0 parents. From that point on, for every node, only the nodes
+directly connected are examined, and then the node is removed from the
+problem space, reducing the problem size by 1. In addition, upon reaching
+the second phase of the algorithm, if a cycle is detected, the Depth First Search
+operates in O($m+n$) time as well, giving us our overall time complexity of
+O($m+n$).
+\section{Butterfly Sorting}
+\section{Missing Element}
+\subsection{Problem}
+Given an array of $n$ elements, each with a distinct value from
+1 to $n+1$, how can you find which value is missing from this list?
+\subsection{Sorted List}
+If the list is already presented in sorted order, finding a solution
+is much easier.
+\subsubsection{Algorithm}
+\begin{lstlisting}
+Assume a sorted input array A.
+set a 'previous value' to be 0
+while haven't reached the end of A:
+    if the kth item - previous value > 1:
+        the value (A[k] - 1) is missing, exit
+    otherwise:
+        the previous value is set to the A[k] value
+\end{lstlisting}
+\subsubsection{Proof}
+This algorithm will always find a missing number in a sorted
+input from 1 to $n$ + 1. 
+\subsubsection{Runtime}
+The runtime of this algorithm is O($n$). Because the list of
+all elements are examined one time, and the sorting is performed
+before the algorithm begins, the order of the algorithm is
+a linear function of the length of the input, therefore O($n$).
+\subsection{Unsorted List}
+With a non-sorted input, the problem becomes more challenging, as
+looking for a gap between two numbers in a single pass cannot suffice.
+However, because we know the input space is limited by the fact that
+each number is between 1 and $n+1$, we can utilize a secondary data structure
+to efficiently find the missing number.
+\subsubsection{Algorithm}
+\begin{lstlisting}
+Create an auxillary array of size n+1
+for each element k in the input:
+    mark the kth position of the aux array as seen
+
+for each element i of the auxillary array:
+    if i isn't marked as seen, it didn't appear in the 
+    original input and therefore is the missing value
+\end{lstlisting}
+\subsubsection{Proof}
+TODO
+\subsubsection{Runtime}
+Similar to the case where the input is sorted, the runtime
+of this algorithm is O($n$), as each element in the list is
+inspected at most once, and the resulting auxillary array is
+linearly searched for the missing value. However, this method
+also uses O($n$) additional space beyond the input, as the
+auxillary array needs to be created, unlike in the case of
+the sorted input.
+
+\end{document}
