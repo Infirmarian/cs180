@@ -39,11 +39,17 @@ while S isn't empty:
     remove e from the set S
     remove e from the graph G
 if the graph G is empty, L contains a topological ordering, exit
-otherwise all remaining elements are part of at least 1 cycle. To
-find such a cycle, pick an arbitrary node still in the graph, and
-perform Depth First Search with the target as the selected node.
-Once the node is found, the stack used in DFS represents the cycle
-the node is found, 
+otherwise a cycle must exist in the remaining elements. To find such
+a cycle:
+select an arbitrary node k, and mark it as visited
+select an arbitrary edge coming into k, and set the k that node
+if the new k has been visited, k is part of a cycle
+otherwise, repeat the previous step
+
+As per proof 3.19 in the textbook, the above method will always find
+a member of a cycle. Once that node has been identified, perform
+depth first search originating from that node k until k is found again.
+The path from k to k will represent the cycle.
 \end{lstlisting}
 \subsection{Proof}
 We will prove the algorithm provides a correct solution to an arbitrary
@@ -75,35 +81,277 @@ This runtime is achieved because the entire graph is searched just once
 for nodes with 0 parents. From that point on, for every node, only the nodes
 directly connected are examined, and then the node is removed from the
 problem space, reducing the problem size by 1. In addition, upon reaching
-the second phase of the algorithm, if a cycle is detected, the Depth First Search
+the second phase of the algorithm, a backtrack search will visit each
+node at most one time, as it stops when a duplicate is found. Finally
+performing the Depth First Search to identify a specific cycle
 operates in O($m+n$) time as well, giving us our overall time complexity of
 O($m+n$).
 \section{Butterfly Sorting}
+\subsection{Problem}
+There is a group of $n$ butterflies, each butterfly being of either
+type A or type B. However, rather than having categorized them by type,
+they have been compared pairwise. Each pair is either marked 
+\textit{same} or \textit{different}, or remain umarked if it was ambiguous. Find
+if the markings were \textbf{consistant}, where consistancy is
+defined as
+\begin{enumerate}
+    \item if $i$ and $j$ are marked \textit{same}, then they have the same label (or group)
+    \item if $i$ and $j$ are marked \textit{different}, then they labeled differently.
+\end{enumerate}
+\subsection{Algorithm}
+One useful abstraction for this problem is to think of the butterflies
+as nodes in a graph, and the markings \textit{same} or \textit{different}
+as edges connecting them in an undirected format. As such, we can use an algorithm to
+traverse the tree, marking nodes as we go to determine if the labeling was consistant.
+We can first observe an inconsistancy in the smallest case. Say there are 3 butterflies,
+$i$, $j$, and $k$. An inconsistant labeling would occur if $i$ and $j$ are marked as \textit{same},
+$j$ and $k$ are marked as \textit{same}, but $i$ and $k$ are marked as different. This situation
+cannot be resolved, as one of the three markings must be incorrect.
+\begin{lstlisting}
+create a queue Q holding nodes to visit
+select an arbitrary node and give it a label L (either A or B)
+push the node to Q
+while Q is not empty:
+    pop a node n from the front of Q
+    for every edge e on n:
+        if e is "same":
+            if the node has been marked and the label is not L, there is a contradiction
+            if the node has not been marked, label it L and push to Q
+        if e is "different":
+            if the node has been labeled and the label is L, there is a contradiction
+            if the node has not been labeled, label it !L (where !B=A) and push to Q
+
+at this point, the whole graph has been inspected and no contradictions
+were found, so the labeling was consistant
+\end{lstlisting}
+\subsection{Proof of Algorithm}
+To prove this algorithm, we assume 2 arbitrary, unlabeled nodes $i$ and $j$.
+If node $i$ is paired in a \textit{different} relationship with another node
+$k$ (arbitrarily marked A), we know that $i$ must be marked B, as it must
+be different from $k$. In addition, we know that $j$, unlabled at the time,
+must then be labeled either A or B depending on whether the relationship between
+$i$ and $j$ is \textit{same} or \textit{different}. In the case the relationship is
+\textit{same}, and $j$ has already been marked as A, the graph is inconsistant.
+If the relationship is \textit{different}, and $j$ has already been marked B,
+the graph is inconsistant. This proves that given a pair of nodes, the algorithm
+will always find an inconsistancy if one exists between the two nodes once
+they have been labeled
+\subsection{Runtime}
+The runtime of this algorithm is O($n+m$). Since each node is visited at most
+1 time, to be marked as a category, there is a contribution of $n$. On each node,
+all edges (different and same) are also traversed to the neighboring node, in order to
+compare the coloring to the other elements, which provides a time contribution of
+$m$, as each edge may be traversed once or twice in the worst case. Overall,
+these give us a runtime of O($n+m$).
+\section{Tenuous Connection}
+\subsection{Problem}
+If two nodes are far apart, intuition states that the connection between them
+is tenuous. If two distinct nodes $s$ and $t$ are strictly more than $n/2$ steps apart,
+there must be a node $v$ that, upon removal, breaks all paths between $s$ and $t$.
+Give an algorithm to find such a node.
+\subsection{Algorithm}
+Logically finding shortest paths between $s$ and $t$ can be thought of
+as a varient of the Breadth First Search problem, and if a level $L_n$ of
+the tree has only 1 element, that node is a key node to the path
+\begin{lstlisting}
+create a queue Q
+create an array A from 0 - $n-1$ filled with 0s
+set the node t to a level 1, add t to Q
+while Q is not empty:
+    pop from Q into node n
+    if A[level(n)] is 0, place n into A[level(n)]
+    otherwise mark it NOT TENUOUS
+    for each edge in n:
+        if the connected node has not been visited:
+            mark the node as level(t) + 1
+            add the node to Q
+for each element k of A:
+    if k is a node:
+        k is the tenuous node
+\end{lstlisting}
+\subsection{Proof}
+Given that there is a distance of more than $n/2$ between $t$ and 
+$s$, there must must be a node that is the \textit{tenuous} node,
+where breaking it destroys all paths between $t$ and $s$. We prove by
+contradiction. Assume there is a path between the two nodes that is not
+\textit{tenuous}. As such, at each distance from 1 to $n/2$ there must be 
+2 or more nodes connected from the previous path. If this weren't the case,
+there would be a level $k$ such that removing the node at $k$ would break
+the paths between $t$ and $s$. With these two paths, for each degree of
+separation, there must be at least 2 nodes, and with $n/2$ degrees of
+separation, there must be at least $n$ nodes between $t$ and $s$. This
+forms a contradiction, $n$ + 2 ($t$ and $s$) is not equal to $n$. The existance
+of this contradiction proves that there must be some number of steps away from
+$t$ where there is only 1 node connecting the paths. The Breadth First Search
+algorithm creates $k$ layers, where each layer is of distance $k$ from the origin
+of the search. Therefore there must be some layer $L_k$ where there is only
+1 element, and this layer will be found through the algorithm and the auxillary
+data structure of the array. Each time a level is encountered, if a node from that
+layer has been seen before, it is marked NOT TENUOUS in the array, and if it hasn't
+been seen, the node is tracked. This means any node at a given level seen exactly
+one time will be in the array, and will be found by a linear search of the array.
+\\ Since we proved that such a graph (with $s$ and $t$ greater than $n/2$ distance apart)
+will have a node which is \textit{tenuous}, and have shown our algorithm will find
+such a node, we prove our algorithm's accuracy.
+\subsection{Runtime}
+The runtime of this algorithm os O($n + m$), while the space complexity is
+O($n$). To gather the time complexity, we see that each element is visited exactly once, to
+be marked in a level, and each edge on that node is also visited once. This is the same
+as the runtime of Breadth First Search, which makes logical sense as the algorithm is just
+a variation on BFS. The traversal of each element of the auxillary array is also in linear
+time with respect to the number of nodes $n$, so the overall time complexity is O($n+m$).
+For space complexity, an auxillary array of size $n$ is created to house potential 
+nodes existing in a single level $L_k$. This gives us the space complexity of O($n$).
+\section{Virus Infection}
+\subsection{Problem}
+Security Analysts want to know if a virus could have spread from a computer
+$C_a$ at time x to $C_b$ at time y, given an series of $n$ computers,
+each of which can communicate with any other computer. If a computer $k$
+is infected at time $t$ and communicates with a clean computer, the clean computer
+is infected going forward in time. Given a sorted series of communications computers
+and times in the form ($C_i$, $C_j$, $t_x$), ordered by $t_x$, find whether
+computer $C_a$ could have infected computer $C_b$.
+\subsection{Algorithm}
+This algorithm relies heavily on the fact that the incoming connection
+list is sorted by time.
+\\
+\begin{minipage}{\linewidth}
+\begin{lstlisting}
+discard all communications before time x
+mark all computers as "clean" except for computer A
+for each distinct time t such that x <= t <= y:
+    create a graph G
+    create a set S 
+    for each communication (i, j, t) at time t:
+        insert nodes i and j to G, and create an edge between them
+        if i or j is infected, insert it to set S
+    for each element e in set S:
+        if e is not marked "infected" in G:
+            mark e as "infected"
+            perform BFS from e, marking each unvisited node as "infected"
+if computer B has been marked infected at the end of the algorithm, B could have been
+infected by A from time x to time y
+\end{lstlisting}
+\end{minipage}
+This algorithm works by maintaining a state of all computers as infected
+and not infected at all times, and constructing a graph at each time t,
+which traversal allows discovery of multiple infections at a single time.
+\subsection{Proof}
+In order for a computer to be infected, it must have communicated at some
+point in the past to another computer that was infected, OR have communicated
+with a computer $i$ that was communicating at the same time with an infected 
+computer $j$. Assume that computer $C_b$, the target of our infection became
+infected. This requires there must be some chain of communication tracing back
+to $C_a$, the originator of the virus. In addition, since a computer once infected
+cannot become clean again, we can follow this forward chain of logic, as is
+done in the algorithm. At each time $t$, the state of all computers infected
+at $t-1$ is known. By generating a graph $G$ of all communication occurring at
+time $t$, a traversal of the graph shows all the connected components of 
+that instant. Since each element in the graph that is infected begins as an origination
+point for a Breadth First Search, all computers communicating with an infected
+computer will be found, allowing the global state to be updated. Therefore we show
+all infections occurring at time $t$ will be correctly propagated, and all infections
+exiting before $t$ are known, so therefore following the algorithm run at $t$, we prove
+that the global state must be accurate at any $t$.
+\subsection{Runtime}
+The overall runtime of this algorithm is O($n+m$). The problem statement
+guarantees us that there is at most 1 communication between any two computers.
+In addition, the algorithm performs operations on each edge between two computers,
+marking infected and uninfected nodes, and at the aggregate of all times, each
+edge is only operated on a constant amount of time. The graphs $G$ construction and
+traversal only takes time O($m+n$) as well, as an edge will only ever
+exist in a single $G$, and performing the BFS algorithm also provides a O($m+n$) runtime.
+It might appear that BFS is run up to $n$ times, since it may be run for each
+node in the infected set $S$, but because the search terminates if the starting node has
+already been marked, that case only contributes an overall time of O($n$). Therefore
+we can see our aggregated runtime is O($n+m$).
+\section{Ethnographer Dates}
+\subsection{Problem}
+A group of Ethnographers have a collection of facts about lifetimes of
+individuals in a community. For each pair of people $i$ and $j$, they know
+either that the lifetimes of $i$ and $j$ overlapped, or that $i$ died before
+$j$ was born, or don't have information. How can it be determined if the
+data given to the ethnographers is accurate internally? That is, there are
+no inconsistancies such as A born after B dies, and B's life overlaps with A.
+\subsection{Algorithm}
+The first step is to find an ordering of individuals such that no two
+individuals who have their birth/death ordered don't overlap in lifetimes with
+the proposed birth/death dates.
+\begin{lstlisting}
+construct a directed graph G with nodes of people, directed edges A -> B indicating a "A died before B was born", and undirected edges indicating "lifetime overlap"
+following a topological ordering, pick a node n such that no directed edges go into n
+mark n to have an arbitrary birthday and death day.
+remove the next topological ordering
+if they have a "predecessor", mark their birthday as after their predecessor node's death day
+otherwise, select an arbitrarily birthday and death day
+continue until all nodes (with directed edges) have been visited in some topological ordering
+if any node hasn't cannot be removed (ie a cycle), the data are inconsistant
+
+for each node n in the topological ordering:
+    for each of its undirected neighbors:
+        if the neighbor doesn't have a birthday marked, mark it as sometime between n's birth and death
+        if the neighbor has a birthday, and it is after n's death, there is an inconsistancy
+mark all individuals without a death as dying after the last marked individual
+\end{lstlisting}
+\subsection{Proof}
+The algorithm follows a two step process, first finding a plausible ordering of
+non-overlapping individuals, and then ensuring that all remaining overlappings are
+possible. We prove by use of the topological ordering that, if it exists,
+a labeling may be generated where individuals who "come before others" are
+accounted for. Upon completion, the second round will match all remaining members,
+providing birthdays and deathdays based on the ordering provided by the topological
+sort
+\subsubsection{Overlap and Non-Overlap Contradiction}
+Assume we have two rules such that A died before B was born, and B and A overlap,
+and the algorithm failed to find an inconsistancy. By checking, A would be in the 
+topological ordering, with arbitrarily birthday $i$ and deathday $j$. By the first ordering,
+B would be assigned some birthday $k$, such that $k$ is greater than $j$. However, in the
+second pass, B provides a contradiction, as its birthday has already been assigned, and it
+does NOT fall within A's lifetime. Therefore we show without loss of generality that
+these rules contradiction would be detected
+
+\subsection{Runtime}
+The runtime of this algorithm is O($n+m$). Because each node is inspected once to generate
+the topological ordering (with runtime as shown in the textbook), this contribues O($n+m$).
+In addition, marking birthdays based on a traversal of the topological ordering only
+visits one node per edge, contributing $m$. Overall this gives us a time complexity of O($n+m$).
 \section{Missing Element}
 \subsection{Problem}
 Given an array of $n$ elements, each with a distinct value from
 1 to $n+1$, how can you find which value is missing from this list?
 \subsection{Sorted List}
 If the list is already presented in sorted order, finding a solution
-is much easier.
+is much easier and faster, and can be done with a modified binary search
 \subsubsection{Algorithm}
+\begin{minipage}{\linewidth}
 \begin{lstlisting}
 Assume a sorted input array A.
-set a 'previous value' to be 0
-while haven't reached the end of A:
-    if the kth item - previous value > 1:
-        the value (A[k] - 1) is missing, exit
-    otherwise:
-        the previous value is set to the A[k] value
+while n > 1:
+    pick a point k such that k = n/2
+    if A[k] is greater than n/2:
+        the missing value must have occurred in the first half of the list
+        if n == 1, return A[k] - 1
+        discard the top half of the list
+    if A[k] is equal to n/2:
+        the missing value must occurr in the second half of the list
+        if n == 1, return A[k] + 1
+        discard the bottom half of the list
 \end{lstlisting}
+\end{minipage}
 \subsubsection{Proof}
 This algorithm will always find a missing number in a sorted
-input from 1 to $n$ + 1. 
+input from 1 to $n + 1$. Because the input is sorted and the numbers are distinct, 
+the numbers must be strictly increasing each time. Therefore, picking the 
+halfway point can provide some insight into the problem state. If all
+numbers were present, we would expect the halfway point to be a value $n/2$.
+If it is $n/2$, none of the first $n/2$ numbers are missing, meaning the missing
+number must be in the top half of the array. If it is less than $n/2$, it means the
+missing number must have already occurred, and is therefore in the bottom half. By
+continuing to split the list each time, a solution will be eventually found, once there
+is one element left in the list.
 \subsubsection{Runtime}
-The runtime of this algorithm is O($n$). Because the list of
-all elements are examined one time, and the sorting is performed
-before the algorithm begins, the order of the algorithm is
-a linear function of the length of the input, therefore O($n$).
+The runtime of this algorithm is O($log(n)$). Since the list is sorted,
+and each time roughly half the values are discarded, the runtime is logrithmic
 \subsection{Unsorted List}
 With a non-sorted input, the problem becomes more challenging, as
 looking for a gap between two numbers in a single pass cannot suffice.
@@ -111,6 +359,7 @@ However, because we know the input space is limited by the fact that
 each number is between 1 and $n+1$, we can utilize a secondary data structure
 to efficiently find the missing number.
 \subsubsection{Algorithm}
+\begin{minipage}{\linewidth}
 \begin{lstlisting}
 Create an auxillary array of size n+1
 for each element k in the input:
@@ -120,12 +369,22 @@ for each element i of the auxillary array:
     if i isn't marked as seen, it didn't appear in the 
     original input and therefore is the missing value
 \end{lstlisting}
+\end{minipage}
 \subsubsection{Proof}
-TODO
+We are guaranteed that there are no duplicate elements, and
+that all elements range from 1 to $n+1$ in value. Therefore to
+find the missing element, we simply need to keep track of all elements
+that have been seen before. Using an array gives us the ability to track
+all possible values of this set and if they have been seen or not. By
+updating the position of the array only when a new element is read,
+we guarantee that the array will never be updated for a missing element,
+and searching the array for this un-updated value will give us the missing
+element.
 \subsubsection{Runtime}
 Similar to the case where the input is sorted, the runtime
 of this algorithm is O($n$), as each element in the list is
-inspected at most once, and the resulting auxillary array is
+inspected at most once (inserting to the auxillery array occurs 
+in constant time), and the resulting auxillary array is
 linearly searched for the missing value. However, this method
 also uses O($n$) additional space beyond the input, as the
 auxillary array needs to be created, unlike in the case of
