@@ -1,0 +1,109 @@
+\documentclass[titlepage]{article}
+\usepackage{amsmath}
+\usepackage{enumerate}
+\usepackage{listings}
+\title{CS 180 Homework 3}
+\author{Robert Geil \\
+University of California, Los Angeles
+}
+\lstset{frame=tb,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  breaklines=true,
+  tabsize=2
+}
+\numberwithin{equation}{subsection}
+\begin{document}
+\maketitle
+\section{Shortest Paths}
+\subsection{Problem}
+Given a graph $G$, and two nodes $v$ and $w$, find the number of
+shortest paths between the two nodes.
+\subsection{Algorithm}
+This algorithm is very similar to pure BFS, with
+the main modification being a tracking of the number of
+nodes used to reach each level of the BFS tree
+\begin{lstlisting}
+give each node in the tree a counter set to 0, a boolean "visited" set to false and a boolean "queued" set to false
+create a queue Q
+set v's counter to 1, and push v into Q
+while Q is not empty:
+    pop from Q into node n
+    for each neighboring node e adjacent to n:
+        if e hasn't been visited:
+            add n's counter to e's counter
+        if e hasn't been "queued":
+            push e into Q
+            mark e as "queued"
+    mark n as visited
+the counter value at node w is the number of shortest paths from v to w
+\end{lstlisting}
+\subsection{Proof}
+By the properties of Breadth First Search, the route generated from a
+BFS from starting node k to any other node will be the shortest
+possible path. As such, we are guaranteed that the path found from
+$v$ to $w$ is the shortest possible. In addition, our algorithm
+\textit{trickles down} the number of routes at each level. If our
+graph has a node $n$ on level $k$ with edges to two arbitrary nodes on
+level $k-1$, the two nodes will each visit the $n$. Both of
+them will add their \textit{counter} to the $n$. As such,
+this means the counter for the node at level $k$ can be reached
+by the sum of the number of ways its two parents can be reached.
+Either one (but not both) of the nodes at level $k-1$ will 
+enqueue the node at level $k$. As such, we prove that the counter for
+node $n$ will be representative of the sum of the nodes at a higher
+level which can reach $n$. Since these levels, created implicitly by BFS,
+are shortest paths, we prove that the algorithm will find the
+number of shortest paths to any node in the graph $G$.
+\subsection{Runtime}
+Since each node is enqueued and visited only 1 time, and each edge
+is only traversed once, this algorithm has the same time complexity as
+pure BFS, O($n+m$). In addition, since a counter needs to be stored
+at each node, there is a space complexity of O($n$).
+\section{Depth-First Breadth-First Equivalence}
+\subsection{Problem}
+Given a graph $G$, choose an node $u$ and using depth-first search,
+build a tree $T$ rooted at $u$. Using breadth-first search, build a
+tree $T'$ rooted at $u$. If $T'$ = $T$, prove that $T$ = $G$.
+\subsection{Proof}
+By contradiction, assume that $G$ does not equal $T$. In this case,
+there must be a cycle in $G$, as a tree $T$ follows the property
+of being acyclic. If there is a cycle in $G$, there is some node $n$
+at a \textit{level} $k$ away from the root $u$ such that $n$ must have
+an edge to another node $n'$ in $k$ as well, by the definition of a cycle
+in a BFS tree. Here level indicates the distance from the root to a set of
+nodes. As such, if such an edge existed, a DFS traversal, by the algorithm
+of DFS would visit that edge first, as DFS recursively the first edge
+of a node and then visit that node. As such, the tree created by DFS would
+have the other cyclic node on a level $k+1$, but the BFS search, as it finds
+the shortest path from the root to each node, would have it on level $k$.
+Therefore, without loss of generality, we find a contradiction and show that
+if $G$ is not equal to $T$, BFS and DFS will generate different trees.
+\section{A Connected Network}
+\subsection{Problem}
+A group of $n$ (where $n$ is even) mobile devices form a network,
+where nodes $i$ and $j$ are connected by an edge if the distance between
+$i$ and $j$ is less than or equal to 500 meters. Can network connectivity
+be ensured by requiring that each device is no more than 500 meters from
+at least $n/2$ other devices at any time? That is, if there is a 
+graph $G$ of $n$ edges, is $G$ guaranteed to be connected if each
+node has a degree of at least $n/2$?
+\subsection{Proof}
+Yes, if each node has a degree of $n/2$, the graph is guaranteed to be
+connected. By definition of degree of a vertex, an arbitrary node $k$
+must be connected to $n/2$ \textit{other} nodes. Assume there is another
+node $k'$ that is not connected to $k$. By the rules of the graph, 
+$k'$ must also be connected to $n/2$ other nodes. By the definition of
+connected, any node that is connected to both $k$ and $k'$ implies that
+$k$ and $k'$ are connected, so therefore the sets $S$ and $S'$ (all the
+nodes connected to $k$ and $k'$ respectively) must be disjoint. In
+addition, $k$ is not in $S$ (since a node cannot be connected to itself)
+and $k$ is not in $S'$, as that would imply it is connected to $k'$.
+Similarly $k'$ is not in $S$ or $S'$. By graph rules, the cardinality of 
+$S$ and $S'$ must each be at least $n/2$. Therefore, the cardinality of
+the union of $S$, $S'$, $k$ and $k'$ must be at least $n/2 + n/2 + 1 + 1$.
+or $n + 2$. Because the graph contains only $n$ nodes, this forms a 
+contradiction, and we prove that any two arbitrary nodes in a graph $G$
+each with degree $n/2$ \textit{must} be connected.
+\end{document}
