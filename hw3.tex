@@ -106,4 +106,77 @@ the union of $S$, $S'$, $k$ and $k'$ must be at least $n/2 + n/2 + 1 + 1$.
 or $n + 2$. Because the graph contains only $n$ nodes, this forms a 
 contradiction, and we prove that any two arbitrary nodes in a graph $G$
 each with degree $n/2$ \textit{must} be connected.
+\section{Optimal Shipping}
+\subsection{Problem}
+A shipping company is sending one truck between two locations each day.
+Based on company policies, only 1 truck may be used at a time and packages
+must be sent out in the order they are received. The company is 
+currently using a greedy algorithm to pack the truck, sending the most 
+recently delivered packages out until the truck cannot accomadate
+the next package, and then waiting for the next truck. Prove that this
+is an optimal solution
+\subsection{Proof}
+Assume there is some optimal solution $O$ which sends the fewest possible
+trucks to transport the packages. We can see that the existing solution $S$
+and the optimal solution $O$ must load packages identically for some
+package number $i$, such that $i\geq0$. This can be trivially proved, since
+at time 0, both our solution and the optimal solution have packed no packages.
+For sending the next package, consider the two possibilities. First, consider
+the case that the $i+1$st package is too large for the current truck. In this case,
+both our solution and the optimal solution must wait for the next truck,
+based on the rules of packing, and therefore are equivelent. Second, the
+case that the $i+1$st case can fit on the truck, but may choose to be delayed.
+In the implementation of $S$, the package is greedily sent on the current truck.
+The optimal solution minimizes the number of individual trucks sent. 
+In order to do this, we assume there is some minimum required number of
+trucks to transport all the remaining packages. For example, if the capacity
+of each truck is 10 and there are 20 packages of weight 1, there must be at least
+2 truckloads sent out. As such, the optimal solution sends a minimum number
+of trucks out. However, we see that our solution $S$, if a package can fit on
+a truck will ship it. As such, after the $i+1$st package, our solution
+will always have at most the same number of packages remaining to be sent
+as the optimal solution, and will not have sent an additional truck to
+send the $i+1$st package. As such, we prove by induction that our solution $S$
+is equivelent to the optimal solution $O$ up to a point $i$, and that for
+every package after that point, our solution performs at least as well
+as the optimal solution.
+\section{Triathalon Ordering}
+\subsection{Problem}
+You are running a triathalon, with swimming, biking and running components,
+and a group of individuals competing. The contestants are sent out in
+a staggered fashion, because only 1 person may swim at a time, but any
+number of individuals may run/cycle concurrently. Given an \textit{estimated}
+time for running, swimming and cycling, how can you order individuals such that
+the last individual finishes as soon as possible?
+\subsection{Algorithm}
+\begin{lstlisting}
+sort the contestants based on the sum of running and biking time
+while there are contestants remaining:
+    send the next contestant k into the pool
+    wait for k to finish swimming
+\end{lstlisting}
+\subsection{Proof}
+The algorithm relies on the fact that concurrancy is permitted for
+running and cycling, but not for swimming. Because only 1 person is
+permitted in the pool at a time, there exists a minimum amount of
+time that the contest must run for, namely the total time of all
+swimmers, as there cannot be overlapping. As such, the criteria to
+optimize is the amount of time that contestants spend running and
+biking. By selecting the individual who takes the most time to bike/run
+and starting them first, it is guaranteed that anyone who swims after them
+will take less time biking/running. To prove this, consider an optimal solution $O$,
+and our solution $S$. We see there is some initial ordering up to step $i \geq 0$
+where $S$ and $O$ agree. At the $i+1$st step, $S$ chooses the individual who
+will take longest to complete the running/walking. By choosing this, we can
+see that this individual will finish swimming faster and begin running before
+another candidate. Therefore the minimum remaining time is $S+(R+B)$ where 
+$S$ is the time to swim, $R$ is the time to run and $B$ is the time to bike.
+This is at least as good as the optimal solution, as the remaining candidates will
+have more overlapped time to run and bike.
+\subsection{Runtime}
+The only significant step of this algorithm is performing a sort based on
+combined running and swimming time. As sorting can be done in O($n\log(n)$) time,
+and following the sort is just a linear time pass through the list, the
+overall time complexity of this algorithm is O($n\log(n)$)
+\section{}
 \end{document}
