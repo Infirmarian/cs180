@@ -178,5 +178,65 @@ The only significant step of this algorithm is performing a sort based on
 combined running and swimming time. As sorting can be done in O($n\log(n)$) time,
 and following the sort is just a linear time pass through the list, the
 overall time complexity of this algorithm is O($n\log(n)$)
-\section{}
+\section{Longest Paths}
+\subsection{Problem}
+Given a graph $G$, what is the longest path that can be made between
+any two nodes, if edges can only be traversed once?
+\subsection{Directed Graph}
+\subsubsection{Algorithm}
+\begin{lstlisting}
+enumerate all possible unique paths
+find the longest of the enumerated paths
+\end{lstlisting}
+\subsubsection{Proof}
+By observing every possible path, it is guaranteed that the
+longest path must be in this set. Therefore, this algorithm is
+guaranteed to find the longest possible path
+\subsubsection{Runtime}
+The runtime of this algorithm is O($n!$). This problem is akin to
+other NP-Complete problems, like the Traveling Salesman Problem. In
+the case that the graph is completely connected, this problem is the same
+as the TSP, except that the optimization criteria is to find the longest,
+not shortest path passing through all nodes. As an NP-Complete problem,
+there is no known polynomial time solution.
+\subsection{Directed, Acyclic Graph}
+\subsubsection{Algorithm}
+To find a solution, one can perform an algorithm similar to a reverse topological ordering\\
+\begin{minipage}{\linewidth}
+\begin{lstlisting}
+create a set S
+mark each node in G with a distance of 0
+mark each node in G with a 'next' of null
+fill S with nodes that are not a source of an edge
+while G is not empty:
+    for each node k in S:
+        for each node o incoming to k:
+            if o's distance is less than k's distance + 1:
+                set o's distance to k's distance + 1
+                set o's next to k
+        remove k from S
+        remove k from G
+    repopulate S with all nodes in the updated G with no incoming edges
+search all nodes to find the largest distance
+the node with the max distance is the longest path, and the path can be calculated by following the 'next' values
+\end{lstlisting}
+\end{minipage}
+\subsubsection{Proof}
+The algorithm follows somewhat to a topological ordering. We will
+prove the accuracy by induction. We see for the first step selecting
+all nodes with no outgoing edges, there is a guarantee that the nodes
+which go to these terminal nodes have a path length of at least 1, but
+it cannot be determined if there is a longer path yet. For the nth step,
+we see that each time a node with no outgoing edges is examined, that path
+from a previous node to the terminal must be at least the length
+of the terminal path plus 1. Using a comparison, and only updating
+the path if the distance from a terminal back to a non-terminal
+parent is greater than the existing distance to the parent,
+we maximize the length of the path. By this induction, we prove that the
+algorithm will find the longest path in a Directed Acyclic Graph.
+\subsubsection{Runtime}
+This algorithm, in performing similar to a topological in that it examines
+each edge once and removes nodes once all their edges have been examined
+gives us a runtime of O($n+m$). In addition, searching for the maximum value
+is only an O($n$) operation, maintaining our time complexity of O($n+m$).
 \end{document}
