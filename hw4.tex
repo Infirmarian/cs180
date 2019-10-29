@@ -87,4 +87,125 @@ our algorithm is optimal for finding the largest number of jobs on a circular in
 The runtime of sorting is O($n\log n$). Finding the number of overlapping jobs can be done in linear
 time with a sorted list, and going through the remaining $n-1$ elements to either accept or reject the job
 is also O($n$). Overall, this gives us a runtime of O($n\log n$).
+\section{Banking Fraud}
+\subsection{Problem}
+A banking company is attempting to find whether at least $n/2$ of the cards in a given group are belonging
+to the same bank account. Cards can only be tested pairwise for equivalence, i.e. checking to see 
+if cards $i$ and $j$ are part of the same account. Provide an algorithm that can do this with at most
+O($n\log n$) comparisons.
+\subsection{Algorithm}
+This problem is fundamentally one of grouping, which can be done in a divide-and-conquer format.
+At the lowest level, each card can be placed in a group by itself, and then each comparison either merges two
+groups together or keeps them seperate.
+% TODO:
+\begin{lstlisting}
+assign each of the n items a group
+arbitrarily pair groups together
+for each pair of groups:
+    if the first element of the both groups is equal:
+\end{lstlisting}
+\section{Local Minimum on a Grid Graph}
+\subsection{Problem}
+There exists an $n$x$n$ graph $G$ such that the only edges on a given node are those
+which would be directly above, below, left and right on a chessboard (at a distance of exactly 1).
+Each of the $n^2$ nodes is labeled with a distinct real number. Find a local minimum (a node such that
+the 4 surrounding nodes all have a label greater than the minimum) in O($n$) time.
+\subsection{Algorithm}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}
+while G is not empty:
+    select a line of nodes (horizontal or vertical) L such that L splits G roughly in half. Slices must alternate horizontal and vertical
+    find the minimum node m in L with a linear search
+    if L is horizontal:
+        if the values above and below m are greater than m:
+            m is a local minimum
+        else if the value above m is greater than the value below m:
+            discard the "top half" of G
+        else:
+            discard the "bottom half" of G
+    if L is vertical:
+        if the values left and right of m are greater than m:
+            m is a local minimum
+        else if the value left of m is greater than the value right of m:
+            discard the "left half" of G
+        else:
+            discard the "right half" of G
+\end{lstlisting}
+\end{minipage}
+\subsection{Proof}
+This algorithm relies on a few principles. First, it must be true that a global minimum is also
+a local minimum. By definition, a global minimum is less than all other values, and by extension
+must also be less than the 4 surrounding values. Second, this proof relies on finding the minimum of
+a line. Within a line, the minimum value must also be a local minimum, by a similar reasoning to the case
+of a global minimum in a grid. In addition, we see that in any subset of the original graph $G$, there must
+be a global minimum of the subset, and such a minimum is also a local minimum, unless a smaller value appears
+on the removed border with the rest of the graph. Using the above principles, we can prove that our algorithm
+will always find a local minimum. Selecting a divide gives us a slice of length $n$, and finding the minimum
+on that gives a potential local minimum. In both cases, we are guaranteed that the minimum value is a local
+min within the line it is selected from.
+\subsubsection{Case 1}
+The selected node's 4 neighbors are all less than it. In this case, we have successfully found a local minimum.
+\subsubsection{Case 2}
+If one (or both) of the non-inline neighbors of the selected node are less than it, we have some knowledge about
+one (or both) of the sides of the line. Assume an arbitrary neighbor (left, right, up, or down, depending on
+the orientation of the line) is less than selected node. Because of this, we know by extension that that neighbor
+is less than all elements of the slice, as the selected node is a minimum of the slice. Since there is a subset global
+minimum in any subset of the graph, we know that there is also a subset in the neighbor's side of the graph. 
+Since the neighbor is less than all values on the slice, the global subset minimum must also be less than
+all values on the slice. Therefore, by the above assertion, we know that a local minimum must exist within the
+smaller neighbor's subset of the graph. Taking this step recursively (with no loss of generality) proves that
+the algorithm will always find a local minimum.
+\subsection{Runtime}
+The runtime analysis on this algorithm is a bit more complicated than others. We see that it follows a
+divide-and-conquer algorithm style, and because roughly half the graph is discarded at each step, there will
+be at most $\log n$ steps. However, the amount of work done at each step is not constant. At each step, a slice
+of the graph is linearly probed for a minimum value, initially taking O($n$) time. However, since we have the constraint
+that each slice switches between vertical and horizontal, each time the length of the slice is reduced by half.
+This means that we end up with the sequence
+\begin{equation}
+    n + \frac{n}{2} + \frac{n}{4} + \frac{n}{8} + \dots
+\end{equation}
+factoring out $n$ gives the converging summation
+\begin{equation}
+    \sum_{i=0}^{\infty} \frac{1}{2^i} = 2
+\end{equation}
+Since $\log n$ steps is less than infinity, and by multiplying back in $n$, we can see that the runtime is 
+$\leq 2n$, which is equal to O($n$).
+\section{Shifted Sorted Numbers}
+\subsection{Problem}
+You are provided an array of $n$ sorted integers that have been circularly shifted by $k$ spots to the
+right. Design an efficient (better then linear time) algorithm to find $k$
+\subsection{Algorithm}
+This solution follows a similar pattern to binary search, splitting the list each time and discarding half of it.
+\begin{lstlisting}
+set a value low to the first array entry
+set a value high to the last array entry
+while low is not equal to high:
+    select the midpoint m between low and high
+    if m >= low:
+        set low to m
+    if m < low:
+        set high to m
+the index of low (and high) is the number offset
+\end{lstlisting}
+\subsection{Proof}
+In an unshifted list, it should be that the values are strictly non-decreasing from the first to the last
+position. With the shift, there is some point within the list such that the value at position $i$ 
+is greater than $i+1$. We will prove that this algorithm finds that position by cases.
+\subsubsection{Case 1: midpoint $\geq$ low}
+This case agrees with our prior assumption about the unshifted list, and since we know that the values between
+all points except the shifted index are increasing, it must be true that all values between midpoint and low
+are increasing, so the shift cannot have occurred in the first half of the list. Therefore that portion of the
+list may be discarded.
+\subsubsection{Case 2: midpoint $<$ low}
+In this case, there is some issue (ie the offset) in the first half of the list, since in a strictly non-decreasing
+list, it would be impossible for the low value to be greater than the midpoint. This implies that the shift
+occurred somewhere between the mid and low points, and therefore the top half of the list my be discarded.
+By looking at these two cases, we prove that we never throw out the portion of the list that contains
+the shift, and since this process continues until the effective length of the list is 1, it must converge
+to the offset.
+\subsection{Runtime}
+Because this algorithm discards half the list each iteration, and proceeds until the list is of size 1, there
+are $\log n$ iterations of the loop. Within the loop, a constant time operation of comparing two values is done,
+giving us the overall runtime of O($\log n$).
 \end{document}
