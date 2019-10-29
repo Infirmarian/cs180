@@ -1,0 +1,90 @@
+\documentclass[titlepage]{article}
+\usepackage{amsmath}
+\usepackage{enumerate}
+\usepackage{listings}
+\title{CS 180 Homework 4}
+\author{Robert Geil \\
+University of California, Los Angeles
+}
+\lstset{frame=tb,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  breaklines=true,
+  tabsize=2
+}
+\numberwithin{equation}{subsection}
+\begin{document}
+\maketitle
+\section{Weighted Job Ordering}
+\subsection{Problem}
+A company has a series of jobs presented to it, each with a completion time
+and a weight denoting the importance. The value of a given job $i$ completed is
+weight($i$)*start\_time($i$). The company is seeking a way to minimize the total
+weighted sum of all $n$ jobs presented.
+\subsection{Algorithm}
+The key to this algorithm is accounting for both the time of a job and the priority
+of the job. Jobs with a high time should be scheduled later, but jobs with a high
+priority should be scheduled earlier
+\begin{lstlisting}
+for each job j:
+    assign a score to j calculated by priority(j)/time(j)
+sort the jobs based on their scores
+perform jobs in reverse ordering (highest score first)
+\end{lstlisting}
+\subsection{Proof}
+Assume there is some optimal ordering $O$ which minimizes the total cost (as defined in the 
+problem statment) of executing the jobs. We will prove that our proposed algorithm $P$ performs at least
+as well as this optimal algorithm. In order to perform this proof, we will observe the list in a reverse order.
+We can see that there is some number $i$ such that the last $i$ elements of $O$ and $P$ are the same. 
+This can be assumed as the value of $i$ must only constrain to $i\geq 0$. As such, we observe the 
+$i+1$ element (or 1 further element from the end of the job sequence). Here we see that our algorithm
+will select the smallest ratio of the unassigned jobs. This means that every other possibility would have
+had a larger-than or equal-to weight:time ratio. By swapping our next selected job with the one picked by the
+optimal solution $O$, it is therefore not possible to make a swap between the two algorithms next choices
+which causes our solution to take less time or greater weight. As this is true for the base case and the
+inductive step, we prove there is no swapping of tasks between our algorithm and the optimal one which
+improves times, therefore proving that our algorithm is at least as good as an optimal implementation.
+\subsection{Runtime}
+The primary driver in this algorithm is the sorting based on ratio of priority to time. As with general
+sorting problems, this can be done in O($n\log n$) time. From there, the algorithm just relies on a linear
+traversal through the list, contributing just O($n$) time. This gives an overall time complexity of O($n\log n$).
+\section{Round-The-Clock Scheduling}
+\subsection{Problem}
+A CPU is provided with a list of daily tasks to complete, each of which has a start time and a stop time.
+Provide an algorithm that can efficiently take this list of $n$ tasks and schedule them so the most number
+of tasks can be completed. Tasks can strech across a day-break period, such as from 11:00pm-1:00am
+\subsection{Algorithm}
+The major difference between this and the regular Interval Scheduling Problem is where to begin the
+algorithm. With the traditional problem, the beginning is easily found, while with this modified solution,
+there is no such concept of an \textit{earliest ending} task.
+\begin{lstlisting}
+sort the n jobs based on ending time to a list L
+for each job j:
+    count the number of overlapping jobs
+select the job with the lowest number of overlapping jobs, and accept that job
+set the starting time s to the start time of the first accepted job
+set the ending time e to the end time of the first accepted job
+for each job j in L:
+    if j starts after e and j ends before s:
+        accept j
+        set e to j's end time
+\end{lstlisting}
+\subsection{Proof}
+This algorithm leads to an optimal solution. The biggest difference between this and the traditional
+Interval Scheduling Problem is the lack of a starting point. Our algorithm selects this first item to
+add to the list by choosing the job with the fewest overlapping other jobs. Since the number of overlapping
+jobs is the number of jobs elimated from acceptance, we prove that selecting the lowest of these numbers will
+give the most effective choice for maintaining the largest number of remaining potential jobs. Once this initial
+point is selected, the remaining accepted jobs are choosen through the traditional algorithm. The proof of
+the Interval Scheduling Problem uses a proof by induction. Since the algorithm chooses the earliest possible
+end time, there is no possibility to switch between any given step and the optimal solution and provide a shorter
+total time. Since the optimal scheduler and the given \textit{choose-earliest-ending} algorithm are both the same
+for the first $i\geq0$ steps, and are the same for any given step, they are proven to be the same. Therefore, by
+use of a proven best selection of starting point, and a best algorithm for the non-circular case, we prove that
+our algorithm is optimal for finding the largest number of jobs on a circular interval.
+\subsection{Runtime} %TODO: Ensure that the runtime for finding overlapping elements is correct
+The runtime of sorting is O($n\log n$). Finding the number of overlapping jobs can be done in linear
+time with a sorted list, and going through the remaining $n-1$ elements to either accept or reject the job
+is also O($n$). Overall, this gives us a runtime of O($n\log n$).
+\end{document}

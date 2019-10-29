@@ -184,6 +184,9 @@ Given a graph $G$, what is the longest path that can be made between
 any two nodes, if edges can only be traversed once?
 \subsection{Directed Graph}
 \subsubsection{Algorithm}
+This problem cannot be solved in polynomial time,
+as any possible subset of the paths could be potentially
+the longest path, especially as cycles must be considered.
 \begin{lstlisting}
 enumerate all possible unique paths
 find the longest of the enumerated paths
