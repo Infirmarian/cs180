@@ -94,16 +94,59 @@ to the same bank account. Cards can only be tested pairwise for equivalence, i.e
 if cards $i$ and $j$ are part of the same account. Provide an algorithm that can do this with at most
 O($n\log n$) comparisons.
 \subsection{Algorithm}
-This problem is fundamentally one of grouping, which can be done in a divide-and-conquer format.
-At the lowest level, each card can be placed in a group by itself, and then each comparison either merges two
-groups together or keeps them seperate.
-% TODO:
+This problem is fundamentally one of finding a \textit{majority} among a group. In order to solve this problem,
+we can use a "majority candidate" which is found with a single pass through the list, and confirmed with a
+second pass through the list
+\begin{minipage}{\linewidth}
 \begin{lstlisting}
-assign each of the n items a group
-arbitrarily pair groups together
-for each pair of groups:
-    if the first element of the both groups is equal:
+let mc be the majority candidate (initially null)
+let c be the count for the majority
+for each element e in the group:
+    if mc is null:
+        set mc to e
+    else:
+        compare mc and e
+        if mc equals e:
+            increment c
+        else:
+            decrement c
+            if c = 0:
+                set mc to be null
+if mc is null:
+    there is no majority
+otherwise:
+    make a counter c
+    for each element e (besides mc):
+        compare e and mc
+        if e = mc:
+            increment c
+    if c > n/2:
+        there is a majority
+    otherwise:
+        there is no majority
 \end{lstlisting}
+\end{minipage}
+\subsection{Proof}
+This algorithm relies on the fact that if a majority exists among a group, removing two distinct elements
+will never destroy the majority. We can see that to have a majority, there must be at least $n/2+1$ of the
+majority (by definition), and a total of $n$ in the group. Consider the cases of removing two from separate groups
+\subsubsection{Removing neither from the majority}
+Doing this, we reduce the number of the group to $n-2$, while the majority still has $n/2+1$. If $n/2+1$ is a
+majority of $n$, it is also a majority of $n-2$.
+\subsubsection{Removing one from the majority}
+By removing one from the majority, the new majority value is $n/2$, while the new total is $n-2$. Given the new
+total is $n-2$ and the fact that a majority is greater than 50\%, to have a majority of the new total, one
+must have more than $(n-2)/2 = n/2 - 1$. We see that our new majority value is indeed greater than this. Therefore
+we prove that removing different values will not destroy the majority. Using this principle, we proceed through
+our first pass of the list. If two nodes are the same, we increment the count of the majority candidate. Otherwise,
+we reduce the count of the majority candidate. Different nodes is equivelent to removing two nodes of a different type.
+At the end, we have the only card that could possibly be more than $n/2$ of the total set. Going through again
+all the elements and now counting the number that match with the candidate. If more than $n/2$ match with the
+candidate, then there is a majority. Otherwise, none.
+\subsection{Runtime}
+Overall the runtime on this algorithm is O($n$). Since each node is checked just once against the running
+candidate, and then again against the final candidate, there is a linear number of card comparisons
+done.
 \section{Local Minimum on a Grid Graph}
 \subsection{Problem}
 There exists an $n$x$n$ graph $G$ such that the only edges on a given node are those
@@ -176,7 +219,8 @@ $\leq 2n$, which is equal to O($n$).
 You are provided an array of $n$ sorted integers that have been circularly shifted by $k$ spots to the
 right. Design an efficient (better then linear time) algorithm to find $k$
 \subsection{Algorithm}
-This solution follows a similar pattern to binary search, splitting the list each time and discarding half of it.
+This solution follows a similar pattern to binary search, splitting the list each time and discarding half of it.\\
+\begin{minipage}{\linewidth}
 \begin{lstlisting}
 set a value low to the first array entry
 set a value high to the last array entry
@@ -188,6 +232,7 @@ while low is not equal to high:
         set high to m
 the index of low (and high) is the number offset
 \end{lstlisting}
+\end{minipage}
 \subsection{Proof}
 In an unshifted list, it should be that the values are strictly non-decreasing from the first to the last
 position. With the shift, there is some point within the list such that the value at position $i$ 
@@ -208,4 +253,88 @@ to the offset.
 Because this algorithm discards half the list each iteration, and proceeds until the list is of size 1, there
 are $\log n$ iterations of the loop. Within the loop, a constant time operation of comparing two values is done,
 giving us the overall runtime of O($\log n$).
+\section{Heap Implementation}
+\subsection{Problem}
+Describe how a heap data structure can be maintained and used to extract the minimum, insert a value,
+and change a value. Analyze the time complexity for each of these three operations.
+\subsection{Min Heap}
+In order to maintain the minimum element within easy access, we will implement a \textit{Min Heap}.
+This data structure will follow the heap principles. Namely, it is a complete tree structure where the
+leaves of any node are always greater than the parent. We will use an array to store the data, and allow the
+equations for the locations of the children to be used to navigate the tree.
+\begin{equation}
+\text{index}(\text{child}_1) = 2*\text{index}(\text{parent}) + 1
+\end{equation}
+\begin{equation}
+\text{index}(\text{child}_2) = 2*\text{index}(\text{parent}) + 2
+\end{equation}
+Correspondingly, this gives us easy access to the index of the parent of a node
+\begin{equation}
+\text{index}(\text{parent}) = \lfloor \frac{\text{index}(\text{child})-1}{2} \rfloor
+\end{equation}
+Within the array, we may see something like the following sample Min Heap
+\begin{center}
+    \begin{tabular}{|l|l|l|l|l|l|l|}
+    \hline
+    1 & 5 & 3 & 9 & 7 & 4 &  \\
+    \hline
+    \end{tabular}
+    \end{center}
+Above we see the heap with 1 as the minimum value, and 1 having two children, 5 and 3.
+5 also has two children, 9 and 7, while 3 has 1 child, 4. This tree follows the heap property
+that each of the two children nodes of a parent are greater than the parent.
+\subsection{Extract Min}
+The operation to get the minimum is very easy, simply look at the first element of the array. Because the
+heap property guarantees us that the children of this node are greater than it, and recursively the children
+of those two nodes are greater than it, we know that the smallest value exists at the first position of the
+tree. Once it has been extracted, however, how do you determine which value to replace it with? It must be
+one of the two children of the extracted node, as these are the next two smallest values in the tree
+\begin{minipage}{\linewidth}
+\begin{lstlisting}
+set a node x point to the root
+while x has two children:
+    select the smaller of x's children, and set x's value to the value of this child
+    set x to point to that child
+if x has 1 child:
+    set x's value to the value of the child
+    delete the child
+if x has no children:
+    delete x
+\end{lstlisting}
+\end{minipage}
+This algorithm will traverse down the tree, swapping the minimum of the two children with the current value,
+and then proceeding to focus on that child, until a child occurrs with 1 or zero children, in which case either
+the child (with the value copied up) will be deleted (zero children), or the single child will be swapped up
+and the dangling node deleted. We can see that this maintains the heap property, as at each level, since the
+parent is swapped with the smaller of its children, the heap property remains intact. 
+\subsection{Insert}
+In order to insert a value and maintain the heap property, the new value needs to be placed into the heap
+in such a way that it is less than its two children. This can be acomplished by a \textit{trickle up} operation.
+\begin{lstlisting}
+insert a new node k at the end of the array
+while k has a parent (isn't the root) and k's parent is greater than k:
+    swap k and its parent
+\end{lstlisting}
+This simple algorithm will fill in a new node $k$ in the last spot available, corresponding to the 
+bottom of the tree. This may break the heap property, however, and therefore must be corrected. The property
+states that a child cannot have a higher value than its parent. To achieve this, we swap the new node and its
+parent, trickling upward until either the new node is the root or its parent is less than it.
+\subsection{Change A Number}
+To change a number, we can combine a couple of the previous algorithms. Rather than changing the value in place,
+we can delete the old value and then insert the new value to achieve the same effect. First we can perform the 
+\textit{extract min} operation on the given node, which will remove it from the heap. Then we perform our
+\textit{insert} operation with the new value. This effectively changes the value of the node.
+\subsection{Runtime}
+The runtime of each of these three algorithms is O($n\log n$). For the extract-min algorithm, it takes
+constant time to remove the head of the list. Shuffling up can take in the worst case time in relation to
+the number of levels on the tree. Since a heap is by definition a full tree, there are at most $\log n$ levels, 
+giving us a time complexity of O($\log n$). For insert, keeping track of the end of the array can be done,
+allowing us to insert to the end in constant time. The \textit{reheapify} process of shuffling the new value
+upwards may have to visit at most $\log n$ levels, since it may have to go all the way up to the root if the
+new value inserted is a new minimum. This gives us O($\log n$). Finally, for the changing a number, we make an
+assumption that we have a pointer to the number to be changed. If so, we can combine the runtimes of the delete
+and insert operations (O($\log n$) + O($\log n$) = O($\log n$)). However, if the value needs to be found,
+we must perform a linear search through the entire tree, which takes O($n$). Therefore the runtime of the
+\textit{change-value} operation takes either O($\log n$) or O($n$) time, depending on if a pointer to the
+node to be changed is known.
 \end{document}
