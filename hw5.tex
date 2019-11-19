@@ -16,6 +16,8 @@ University of California, Los Angeles
 }
 \numberwithin{equation}{subsection}
 \begin{document}
+\maketitle
+
 \section{Closest Pair of Points}
 \subsection{Problem}
 Given a set of $n$ points on a plane, find the closest pair of points, defined by the euclidian distance
@@ -65,6 +67,7 @@ Therefore, we prove we must only examine a constant number of elements for each 
 of these bounding boxes can be cleverly done with a pre-sorting, by additionally sorting the Y axis points, another
 O($n\log n$) task at the beginning. This means each step in the merging takes O($n$) time. Combined over all the
 merge steps, we prove we have a final time complexity of O($n\log n$).
+
 \section{Longest Path in Ordered Graph}
 \subsection{Problem}
 An ordered graph is a DAG such that there is a distinct ordering of nodes by index. Each edge only goes
@@ -83,5 +86,119 @@ may then jump directly to the end.
 In the above figure, the greedy algorithm would select the path ($v_0$, $v_1$, $v_4$), for a total length of
 2 segments. However, the optimal solution is ($v_0$, $v_2$, $v_3$, $v_4$) for a total length of 3 segments.
 \subsection{Correct Algorithm}
-%TODO
+This solution will use a dynamic programming paradigm, each time building up the solution inductively. This
+solution relies on the nodes being processed in order (ie $v_0$, $v_1$, \dots $v_n$)
+\begin{lstlisting}
+1. Set a length of each node, initially set to zero
+2. Select a current node i initially set to the first value V(0)
+3. For each incoming edge (from node k to i) on i, if length(k) + 1 > length(i), set length(i) = length(k) + 1
+4. If the last node processed was the last value in the graph, return length(V(i))
+5. Set the current node to V(i+1) and go to step 3
+\end{lstlisting}
+\subsection{Proof}
+This proof relies on an exhaustive search, but in an ordered fashion, and can be proven by induction. For the
+base case, trivially prove that the longest path to $v_0$ is length zero, as there are no earlier nodes which
+could contribute to a path. For each remaining node $v_i$ in the graph, we can see that the longest path to that
+specific node must come from the longest path to one of the earlier nodes $v_j$ where $j < i$. Since the longest
+path must come from one of these, as there are no other inputs to $v_i$, we can maximize the path to $v_i$ by
+selecting the simple longest path among the longest paths for the input nodes, and adding one. As such, we prove
+that this algorithm will find the longest path to an arbitrary node $v_i$. By extension, taking $i = n$, this
+will give a solution for the longest path to $v_n$.
+\subsection{Runtime}
+This algorithm has a similar runtime to many graph traversal algorithms. We see that for each node from 0 to $n$,
+we examine all the incoming edges to the node. Since an edge can only be incoming to exactly one node, each edge is
+looked at at most once, giving us a complexity of O($e$). At each of these edges, a constant amount of work is
+done (a comparison or two), so we have a contribution of just O($e$). In addition, each node is visited initally
+to set values for longest path to zero, so our overall time complexity is O($n+e$). With this problem, along with most
+dynamic programming problems, we should consider space usage as well. For this, we have a space complexity of O($n$).
+Each node must only store the longest distance to that node, and this recurrance is required to calculate further
+nodes, so it cannot be discarded. Therefore our overall runtime of O($n+e$) and space is O($n$).
+
+\section{Word Segmentation}
+\subsection{Problem}
+For some languages, there isn't a special character to denote a word break, and as such, multiple words may
+appear next to each other. Within these languages, it is necessary to determine where the words should break
+up, as different splits may be more correct ways of dealing with the given set of characters. For example,
+\textit{hellothere} could be represented as the correct \textit{hello there} or \textit{hell other e} or 
+\textit{hel loth ere} or any other combination. Assuming we can assign a "quality" factor to a series of letters
+depending on how much of a word it is (such as quality(\textit{hello} = 5, while quality(\textit{e}) = -2)),
+provide an algorithm that finds the highest quality splitting of an input.
+\subsection{Algorithm}
+This dynamic programming problem can be solved using a recurrence relationship, examining the optimal solution
+for 0 to $n$ letters and 0 to $n$ words.
+\begin{lstlisting}
+1. Create an NxN table, with columns the number of letters and rows the number of words and values are quality
+2. Begin with an output containing just the first character of the input
+3. For each additional letter, it is either part of the last word, or a new word
+4. Set the current table entry to max(table[row - 1, col - 1] + quality(new char), table[row, col - last word length] + quality(last word + new char)), and a pointer back to the selected node, go to step 3
+5. Search down the rightmost column for the maximum value, traversing pointers backwards will reveal the highest quality breakdown
+\end{lstlisting}
+\subsection{Proof}
+This algorithm is true by induction. We see that for the base case of an input of length 1, it must be that the
+one element is in a single word, and that word is in the result. From there, each additional character is either in
+the last word available, or is the start of a new word. If it is the start of a new word, the quality must be
+the quality of the previous optimal solution plus the quality of the new character. If the new character is
+part of the last word, then the quality of the solution is the quality of the optimal solution with the first $j$
+words plus quality($j+1$st word + last character). As we can see here, both the options for every additional character
+are explored, so when taking the maximum of the divides of all the characters, all possible solutions have been explored,
+so our solutions is proven correct.
+\subsection{Runtime}
+In this solution, we are iterating over an $n*n$ matrix. At each node, we perform a constant amount of work, with the
+assumption that our \textit{quality} operation is performed in a constant amount of time. At the end, we find the maximum
+of the rightmost column, which takes $n$ steps, and traverse back through the matrix, again hitting at most $n$ nodes.
+Therefore, we see that we have an overall time complexity of O($n^2$). In addition, we use O($n^2$) space, as the
+array storing all the intermediary values has dimension $n*n$.
+
+\section{Supercomputer Selection}
+\subsection{Problem}
+You have two supercomputers which can be used to perform calculations for a project. However, each can only perform
+a given number of operations in a minute, and that value varies depending on the load on the machine. The project can
+be switched from machine to machine, but requires a minute of no operations to perform the swap. Find an algorithm
+that generates the swapping and compute ordering that maximizes the number of cycles used on the machine.
+\subsection{A Bad Approach}
+While it may initially seem that a greedy approach would work on the problem, a quick counter example shows that
+solution cannot work. In the greedy approach, if the value of $a_i + a_{i+1} < b_{i+1}$, a swap is done. However,
+with the following, that solution won't work out. 
+\begin{center}
+  \begin{tabular}{|c|c|c|c|c|}
+    \hline
+  Computer & Minute 1 & Minute 2 & Minute 3 & Minute 4\\ \hline
+  A & 6 & 1 & 1 & 50 \\
+  B & 5 & 5 & 5 & 5  \\
+  \hline
+  \end{tabular}
+\end{center}
+The greedy algorithm will select A to begin, and then switch at time 2, since $a_2 + a_3 < b_3$. However, performing
+the switch will place on computer B. Looking ahead from Minute 3, the algorithm will instead see that $b_3 + b_4 < a_4$
+and will then switch back to A. Overall, the sequence will be (A, switch, switch, A), giving a value of 56. However,
+an optimal solution would produce (B, B, switch, A) which provides a value of 60, improving on the greedly algorithm.
+\subsection{A Good Algorithm}
+
+\section{Rod Division}
+\subsection{Problem}
+Given a rod of length $n$, and a set of prices for smaller pieces of the rod, determine the maximum value that can be obtained
+by cutting the rod up and selling the pieces.
+\subsection{Algorithm}
+This problem can be solved using a dynamic programming model, where the parameters are the length of the rod, and the segments being sold.
+\begin{lstlisting}
+1. Create an n*m matrix with n columns labeled 1 to n, for the length of the rod, and m rows for the m sale pieces, such that the first entry contains 1 (arbitrary) sale piece, and the mth contains all of them.
+2. Proceeding in row-major order, examine the ith row and the jth column 
+3. Find the optimal solution as max(the ith sale piece price + optimal[i, j - size of sale piece], or optimal[i - 1, j]). If j is less than the size the first option is simply optimal[i, j-1], and if i = 0, the second option is just 0
+4. Go back to step 2 until the last square is filled in
+5. The value in the lower right grid piece is the optimal value
+\end{lstlisting}
+\subsection{Proof}
+This proof can be shown inductively. The base case, where there are no elements to sell and the rod length is zero gives us a trivial solution of
+zero for the maximum profit. Inductively, for a given segment and a given size, the segment is either in the solution, taking up $k$ length, or is
+not in the solution. In the first case, the optimal solution is the optimal solution for a rod of length $j-k$ plus the value of the segment,
+while in the second case, the optimal solution is the optimal solution for a rod of length $j$ without the segment in question. As our algorithm examines both of these
+possibilities and selects the maximum of the two, it is impossible for a rod of length $n$ and possible element set with the given segment
+to be more valuable than what our algorithm selects. As such, since at the lower left of the grid we produce the optimal solution with
+all possible segments and a full length rod of length $n$, that solution must be optimal.
+\subsection{Runtime}
+The runtime of this algorithm is O($n*|e|$), where $|e|$ is the number of segment/price values, and $n$ is the length of the rod. Since we
+are computing each element in the grid, and the grid has $n$ columns, and $|e|$ rows (where each row adds a segment/price value), and for each
+element, we are performing a constant number of operations, finding the max of two values and looking backwards, to build the grid takes O($n*|e|$)
+time. For space, since we must maintain both the current row and previous row in memory (as we may reference row $i-1$ and values $j-k$ in the
+current row), we have a space complexity of the size of a row, which is O($n$), where $n$ is the length of the rod.
 \end{document}
