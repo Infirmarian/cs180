@@ -2,6 +2,7 @@
 \usepackage{amsmath}
 \usepackage{enumerate}
 \usepackage{listings}
+\usepackage{graphicx}
 \title{CS 180 Homework 5}
 \author{Robert Geil \\
 University of California, Los Angeles
@@ -64,5 +65,23 @@ Therefore, we prove we must only examine a constant number of elements for each 
 of these bounding boxes can be cleverly done with a pre-sorting, by additionally sorting the Y axis points, another
 O($n\log n$) task at the beginning. This means each step in the merging takes O($n$) time. Combined over all the
 merge steps, we prove we have a final time complexity of O($n\log n$).
-\section{2}
+\section{Longest Path in Ordered Graph}
+\subsection{Problem}
+An ordered graph is a DAG such that there is a distinct ordering of nodes by index. Each edge only goes
+from a node of a lower index to one of a higher index, and every node besides the last has at least one
+edge originating from it. Find the longest path in terms of segment count from node $v_0$ to $v_n$.
+\subsection{A Bad Approach}
+The provided algorithm is a greedy approach to solving the problem, and it fails under certain situations.
+For example, if the first step can pick a nearby value, this will always be added to the solution. However,
+due to the greedy nature of the algorithm this may pigeonhole the solution to including a poor choice which
+may then jump directly to the end. 
+\begin{figure}
+    \includegraphics[width=\linewidth]{counter2.png}
+    \figurename{: Greedy Counter Example}
+\end{figure}
+\\
+In the above figure, the greedy algorithm would select the path ($v_0$, $v_1$, $v_4$), for a total length of
+2 segments. However, the optimal solution is ($v_0$, $v_2$, $v_3$, $v_4$) for a total length of 3 segments.
+\subsection{Correct Algorithm}
+%TODO
 \end{document}
