@@ -116,6 +116,7 @@ nodes, so it cannot be discarded. Therefore our overall runtime of O($n+e$) and 
 
 \section{Word Segmentation}
 \subsection{Problem}
+%TODO: Review this, it probably sucks...
 For some languages, there isn't a special character to denote a word break, and as such, multiple words may
 appear next to each other. Within these languages, it is necessary to determine where the words should break
 up, as different splits may be more correct ways of dealing with the given set of characters. For example,
@@ -173,7 +174,7 @@ the switch will place on computer B. Looking ahead from Minute 3, the algorithm 
 and will then switch back to A. Overall, the sequence will be (A, switch, switch, A), giving a value of 56. However,
 an optimal solution would produce (B, B, switch, A) which provides a value of 60, improving on the greedly algorithm.
 \subsection{A Good Algorithm}
-
+%TODO
 \section{Rod Division}
 \subsection{Problem}
 Given a rod of length $n$, and a set of prices for smaller pieces of the rod, determine the maximum value that can be obtained
@@ -201,4 +202,38 @@ are computing each element in the grid, and the grid has $n$ columns, and $|e|$ 
 element, we are performing a constant number of operations, finding the max of two values and looking backwards, to build the grid takes O($n*|e|$)
 time. For space, since we must maintain both the current row and previous row in memory (as we may reference row $i-1$ and values $j-k$ in the
 current row), we have a space complexity of the size of a row, which is O($n$), where $n$ is the length of the rod.
+
+\section{Coin Game}
+\subsection{Problem}
+Given an array of $n$ coins, each with a value and where $n$ is even, two players can take turns removing a coin from either end.
+The total score is the sum of all the values of coins that a given player has removed. Determine an algorithm that maximizes the
+earnings of the player who moves first.
+\subsection{Algorithm}
+This algorithm relies on dynamically programming the value of each possible sub-interval. Since there are two players, this is a bit more
+of a complex issue. For every arbitrary pairing, the player needs to pick either left or right ($i$ or $j$), where the choice maximizes
+the value of input[choice] + input[interval after your opponent moves]
+\begin{lstlisting}
+1. Create an NxN matrix M where columns represent lower bound (values from 0 to n-1) and rows represent the upper bound (values from 0 to n-1). The values are a score and a pointer to another grid cell
+2. Proceed through in row-major order from column i in (O, n) and row j in (0, n). 
+3. If i > j, continue. If i == j, set M[i, j] = input[i], if i + 1 == j, set M[i, j] = max(input[i], input[j])
+4. If nothing above matched, let l = input[i] + value of pointer of M[i+1, j]. Let r = input[j] + value of pointer of M[i, j-1].
+5. Set M[i, j] to be the max of l and r, and set the pointer to point to M[i+1, j] if l was greater, and M[i, j-1] if r was greater.
+6. Continue while there are empty squares
+7. Return the value at square M[0, n]
+\end{lstlisting}
+\subsection{Proof}
+This solution can be proved inductively, as it is an exhaustive search of the possible space. For each arbitrary sub-interval between $i$ and $j$
+at the lower and upper bounds respectively, the player can either select $i$ or $j$ to remove. Since, through our grid, all possible intervals
+are examined, we prove that each possible interval will be examined. For the proof of optimality, we turn to induction. For the base case,
+we can see through inspection that when one element remains, the optimal choice is to select that one element, and when there are two elements,
+the optimal choice is to select the larger of the two. For the inductive step, we see that the player can either select the left value, or 
+the right value. For either of these, we assume that there is some optimal choice for the one-smaller problem, by induction. Further, from
+that one-smaller value, there is again a smaller value (as saved by the pointer to previous within our solution). Therefore, the sum of
+the selected value plus the optimal value of two earlier is the expected score by making that move. Since all players move optimally, we
+see that this will generate an optimal solution for the $k$th step, proving our induction.
+\subsection{Runtime}
+The runtime of this algorithm if O($n^2$). For the main body of the algorithm, we iterate over every possible sub-interval. Because
+there are $n\choose 2$ ways to pick two end points of an interval out, and ${n \choose 2} \approx n^2$, there are O($n^2$) optimal sub-intervals.
+In order to calculate each of these, we perform a constant set of operations (doing a few comparisons and lookups in the grid of pre-computed values).
+Therefore, our overall runtime remains O($n^2$).
 \end{document}
