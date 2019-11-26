@@ -1,0 +1,139 @@
+\documentclass[titlepage]{article}
+\usepackage{listings}
+\title{CS 180 Homework 6}
+\author{Robert Geil \\
+University of California, Los Angeles
+}
+\lstset{frame=tb,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  breaklines=true,
+  tabsize=2
+}
+
+\begin{document}
+\maketitle
+\section{Signal Interleaving}
+\subsection{Problem}
+A listener is observing a signal arising from two ships. Each signal pattern is a repeating sequence, such that $x$ is a prefix of $x^k$.
+Given an output $S$, where $S$ is a bit string, and two patterns $x$ and $y$, determine if $S$ is an interleaving of $x$ and $y$.
+\subsection{Algorithm}
+The solution for this problem is to use dynamic programming. As we add bits from zero to $S$, each additional bit is either part of a repeat
+of $x$ or $y$. At each point, the optimal solution is one where there are $k$ and $j$ complete iterations of $x$ and $y$ pattern. 
+\begin{lstlisting}
+1. Create a grid with columns of zero to $|S|$ and rows
+\end{lstlisting}
+\subsection{Proof}
+\subsection{Runtime}
+\section{Number of Shortest Paths}
+\subsection{Problem}
+Given a weighted graph $G$, where all edges may be positive or negative integer weights, but with the restriction that any cycles have
+positive weight, provide an algorithm to find the number of shortest paths between two nodes $u$ and $v$.
+\subsection{Algorithm}
+While solving the general problem may be difficult, finding the solution in an inductive manner is fairly easy. For the base case, we just
+need to find the shortest paths a distance of 1 from $u$ (eg just the neighbors of $u$). For the inductive step, we need to just observe
+the distance from all $n-1$ segment nodes and the paths from them to the $n$ nodes.
+\begin{lstlisting}
+1. Set the distance to all nodes to be infinity, and the distance to u to be zero. Set the number of shortest paths to u to be 1
+2. Create a set L0 just u. Set k = 0
+3. Create a set L(k+1) with the direct neighbors of L(k)
+4. For each element n in L(k+1), find the minimum of L(k)i + ei for all i in L(k) where ei exists as an edge from L(k)i to n. If multiple such minima exist, take the number of paths to be the sum of the number of paths to each minimum
+5. If the minimum value is less than the current minimum on n, set the min of n to be that minimum value and the number of paths to be the number calculated in step 4
+6. If the minimum is equal to the current minimum on n, add the number of paths calculated in step 4 to n's number of paths
+7. While k < the number of nodes in the graph - 1, set k = k + 1, go to step 3
+8. The result is the number of minimum paths at node v
+\end{lstlisting}
+\subsection{Proof}
+We will prove the accuracy of this algorithm inductively. We see for the base case of zero segments ($L = 0$), it is trivially true that there
+is one path from $u$ to itself. For the $n$th case, we assume that the optimal solution that is $L = n$ is known for all nodes. Therefore,
+finding the optimal path of length $n + 1$, we examine all elements that are a distance of 1 away from the set of nodes a distance of $n$ away.
+For each of these, the minimum distance is either the current minimum distance, or a distance from one of the neighboring nodes plus the distance
+of that neighboring node to $u$. \\
+\textbf{Case 1:} The existing distance is smaller than all new distances from nodes $n$ away from $u$. With this case, it is intuitively true
+that we have choosen the correct shortest path and the correct number of shortest paths by not updating \\
+\textbf{Case 2:} The existing distance is less than one or more of the new distances from nodes $n$ away. With this case, we show that we have
+found a shorter distance to the given node, improving our previous minimum distance. In addition, updating the number of paths based on the sum
+of the number of paths from the minima is correct. Since the new node may be reached by any of these paths, and each of these paths can be reached
+by the number of paths to the previous node, adding them provides the number of paths of the same minimum distance.\\
+\textbf{Case 3:} The existing distance is equal to one or more incoming paths. If this is the case, we see that the minimum distance does not
+need to be updated, but more paths of the same minimum distance have been discovered. Therefore, to find $L = n+1$ solution, we take the existing
+number of paths and add all routes of length $L = n$.
+\subsection{Runtime}
+Overall the runtime of this algorithm is O($n^3$) where $n$ is the number of nodes in the graph. We see that our outer loop proceeds while
+$k$ is less than the number of nodes in the graph. This is because for any graph of $n$ nodes, there cannot be a distance without loops of
+more than $n - 1$ segments. Since we assume no negative cycles, proceeding through any cycle will give a longer path, and by cutting the cycle
+out, will give a more optimal solution. Within this loop, all neighbors are investigated, and in the worst case there may be $n$ neighbors.
+For each of these, the minimum path from a previous value is investigated. Finding the minimum is again an O($n$) operation. Therefore we
+see our overall runtime if O($n^3$).
+\section{Gerrymandering}
+\subsection{Problem}
+Given a set of $n$ precincts, each of which has a number of members of party A and party B, determine if the district is susceptible to gerrymandering.
+That is, is it possible to divide the precincts into two groups of size $n/2$ where both belong to the same party. Each precinct has equal numbers of
+people.
+\subsection{Algorithm}
+%TODO
+\section{Base Station Connections}
+\subsection{Problem}
+In a given area, individuals want to connect their $n$ clients to $k$ base stations. Each client has an $(x, y)$ coordinate, and each base station
+has a range $r$ which is the maximum distance that can be connected to, and a load factor $L$ which is the maximum number of devices that
+can be connected to the station. Determine if the network can support all clients.
+\subsection{Algorithm}
+This problem relies on the Ford-Fulkerson Algorithm, by representing the problem as a graph
+\begin{lstlisting}
+1. Construct a graph G containing all base stations, and all clients.
+2. Add a virtual source S and a virtual sink T to the graph
+3. For each base station s, for each client c, if the euclidian distance between s and c is less than the radius r which is the max distance for s, create an edge of weight 1 directed from c to s
+4. For each base station s, add a directed edge from s to T with weight L (where L is the capacity of the base station)
+5. For each client c, add a directed edge from S to c with infinite weight.
+6. Run Ford-Fulkerson algorithm. If the result max-flow = n, the network can handle everyone. Otherwise it cannot.
+\end{lstlisting}
+\subsection{Proof}
+We will prove that our model of the graph is accurate, and that the result will be correct. First, we look at the assigning of links from
+clients to base stations. Creating an edge from each client to base station it is in range with gives us an accurate graph, as this guarantees
+that there is no connection between any client and a base station that it is out of range with. For the links from each base station to the
+virtual sink, by limiting the value as $L$, the capacity of the base station, we guarantee that not more than $L$ can pass through the
+base station. By contradiction, if there were more incoming clients than the capacity, since the output flow is $L$, this would mean that
+the input and output of the base station would not be equal, giving a contradiction on the flow graph. Finally we see that by proofs done
+in class that Ford-Fulkerson will always resolve a max-flow in a graph of integer weights. Since all connected clients generate a flow of
+$n$ if they are all connected (as each client produces 1 flow), if Ford-Fulkerson finds a max-flow of $n$, then the network can handle everyone.
+Conversely, if the result of Ford-Fulkerson is less than $n$, then there cannot be a flow which generates more than the result of Ford-Fulkerson,
+and therefore the network cannot be connected.
+\subsection{Runtime}
+The overall runtime of this algorithm is the runtime to create the graph, plus the runtime to perform Ford-Fulkerson. In order to generate the
+graph, we need to find the distance from each client to each base station. Finding the distance is a constant time operation, and pairing the
+clients and base stations gives us O($nk$). Then, we have proved in class that Ford-Fulkerson runs in O($|f|n$) time, where $|f|$ is the size
+of the max flow. As such, since the max flow in this case is $n$, this contributes O($n(e+n)$), where $e$ is the number of edges in the graph.
+Therefore, combining these two we see that our overall runtime of O($(k+n+e)$)
+\section{Patient-Hospital Matching}
+\subsection{Problem}
+After a natural disaster, $n$ people need to be sent to $k$ hospitals. A person can only go to a hospital if they are within 30 mins of the
+location. Hospitals want to limit the number of people to any given hospital to $\lceil\frac{n}{k}\rceil$. Is it possible to find a
+distribution such that this constraint is matched?
+\subsection{Algorithm}
+This problem can be modeled as a network flow and solved using Ford-Fulkerson
+\begin{lstlisting}
+1. Add all k hospitals and all n people to a graph. Add a virtual source S and a virtual sink T
+2. For each hospital h: for each person p: if distance(h, p) < 30 mins, add a directed edge of weight 1 from p to h
+3. For each hospital h add an edge from h to T with weight ceil(n/k)
+4. For each person p add an edge from S to p with infinite weight
+5. Run Ford-Fulkerson on the resulting graph
+6. If the result of Ford-Fulkerson = n, the patients can be successfully distributed, otherwise they cannot
+\end{lstlisting}
+\subsection{Proof}
+To prove this, we will show that the the resultant network accurately represents the situation, and that solving the max-flow problem gives
+a correct solution. First, we see that this is an accurate model. By creating edges between only individuals and hospitals 30 minutes away or
+less, we show in the resultant graph it is impossible for a patient to be directed to a hospital more than 30 mins away, thereby holding that
+constraint. Second, by limiting output of each hospital to $T$ at $\lceil\frac{n}{k}\rceil$, by the principle of equal input and output flow,
+there can be no more than $\lceil\frac{n}{k}\rceil$ incoming patients to a given hospital. Second, running Ford-Fulkerson guarantees the
+production of the max-flow value for a given graph. If this value is equal to $n$, it must be the case that $n$ flow passes through the graph.
+Since the only source of flow to T is through the $n$ patients, by way of how they are the only nodes connected to the source, it must be
+true that 1 unit of flow is passing through each patient, meaning all patients were successfully matched. Conversely, with the given constraints
+it must be true that there was at least 1 patient which was not matched with a hospital, and such a matching was therefore impossible.
+\subsection{Runtime}
+The runtime of this algorithm is the runtime to build the graph plus the runtime of Ford-Fulkerson. To build the graph, we must iterate over
+each hospital, and for each of these, must iterate over all patients, giving us a value of O($nk$). Ford-Fulkerson runs in O($|f|(e+n)$) for a
+max flow, where $|f|$ is the size of the max-flow, and $n+e$ is the number of edges and nodes in the graph. In this instance, the max-flow is
+$n$, since each person contributes 1 flow, so our overall runtime if O($(k+n+e)n$) if we perform some distribution.
+
+\end{document}
