@@ -174,7 +174,27 @@ the switch will place on computer B. Looking ahead from Minute 3, the algorithm 
 and will then switch back to A. Overall, the sequence will be (A, switch, switch, A), giving a value of 56. However,
 an optimal solution would produce (B, B, switch, A) which provides a value of 60, improving on the greedly algorithm.
 \subsection{A Good Algorithm}
-%TODO
+A correct implementation must rely on dynamic programming in order to achieve a polynomial time solution. Similar to many other
+dynamic programming solutions, there are a few high level dimensions, namely the length of time to use the machines, and the number
+of context switches that are performed. 
+\\
+\begin{lstlisting}
+1. Create a NxN grid with the columns as the number of time slices, and the rows as increasing number of context switches (from 0 to n)
+2. Set the optimal value for M[0, 0] to be the max of A and B at time zero
+3. For each square in the grid, the optimal value is found either by switching context or staying on the same machine.
+4. To determine if it is optimal to switch or stay, take max(M[i - 1, j - 1] + current, M[i, j-1]), where the first value is if you don't switch, and the second value is performing a switch.
+5. Once all the squares have been calculated, traverse down the right-most column and find the maximum value, and that is the maximal value of the whole system
+\end{lstlisting}
+\subsection{Proof}
+This proof relies on the fact of the search being exhaustive, and an inductive proof. For the base case, where there is only one time slot,
+we see trivially that selecting the larger value yields a larger number of cycles. From there, for each additional step, one can either swap
+the program to the other machine, or remain on the same machine. By examining this decision for all increasing steps and picking the optimal one,
+we build out the optimal solution for all sub-problems. Then, by exhaustive search of this space, we prove that the solution derived must be
+the correct one.
+\subsection{Runtime}
+Enumerating over all the grids in the $n*n$ matrix gives us a time complexity of O($n^2$) where $n$ is the number of time slices that
+we are measuring over. Since a constant amount of work is being done to calculate each of these, and the final pass-through of the rightmost
+column is an O($n$) operation, we get our overall time complexity of O($n^2$).
 \section{Rod Division}
 \subsection{Problem}
 Given a rod of length $n$, and a set of prices for smaller pieces of the rod, determine the maximum value that can be obtained
@@ -232,8 +252,8 @@ that one-smaller value, there is again a smaller value (as saved by the pointer 
 the selected value plus the optimal value of two earlier is the expected score by making that move. Since all players move optimally, we
 see that this will generate an optimal solution for the $k$th step, proving our induction.
 \subsection{Runtime}
-The runtime of this algorithm if O($n^2$). For the main body of the algorithm, we iterate over every possible sub-interval. Because
-there are $n\choose 2$ ways to pick two end points of an interval out, and ${n \choose 2} \approx n^2$, there are O($n^2$) optimal sub-intervals.
-In order to calculate each of these, we perform a constant set of operations (doing a few comparisons and lookups in the grid of pre-computed values).
-Therefore, our overall runtime remains O($n^2$).
+The runtime of this algorithm if O($n^2$) where $n$ is the number of elements in the list. For the main body of the algorithm, we iterate 
+over every possible sub-interval. Because there are $n\choose 2$ ways to pick two end points of an interval out, and 
+${n \choose 2} \approx n^2$, there are O($n^2$) optimal sub-intervals. In order to calculate each of these, we perform a constant set of 
+operations (doing a few comparisons and lookups in the grid of pre-computed values). Therefore, our overall runtime remains O($n^2$).
 \end{document}
